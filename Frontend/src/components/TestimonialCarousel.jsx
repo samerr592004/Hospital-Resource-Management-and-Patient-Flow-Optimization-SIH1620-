@@ -7,7 +7,7 @@ import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const TestimonialCarousel = ({ testimonials }) => {
    
-   console.log(testimonials)
+  //  console.log(testimonials)
   return (
     <div className="bg-white py-16 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-3xl mx-auto">
