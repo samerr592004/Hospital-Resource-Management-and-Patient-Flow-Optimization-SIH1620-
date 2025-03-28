@@ -1,71 +1,99 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { AppContext } from '../context/AppContext';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import React, { useContext } from "react";
+import { AppContext } from "../context/AppContext";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
-const MyBed = () => {
-  const { backendUrl,token} = useContext(AppContext);
-
-
-
-  const [appointments,setAppointments] = useState([])
-
-
-  const getUserApppointments= async () =>{
-    try{
-
-      const {data}= await axios.get(backendUrl+'/api/user/appointments',{headers:{token}})
-      console.log(data)
-      if(data.success){
-        setAppointments(data.appointments.reverse())
-        console.log(data.appointments)
-      }
-
-    }catch(error){
-      console.log(error)
-      
-
-    }
-
+const MyBeds = () => {
+  const { backendUrl, token, userData } = useContext(AppContext);
+  
+  // Extract beds data from userData
+  const beds = userData ? Object.values(userData.beds) : [];
+  const slotFormatter = (slotDate) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const dateArray = slotDate.split("/");
+    return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
   }
 
+  const cancelBedReservation = async (bedId) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, cancel it!",
+      });
 
-  useEffect(()=>{
+      if (result.isConfirmed) {
+        const { data } = await axios.post(
+          `${backendUrl}/api/user/cancel-bed`,
+          { bedId },
+          { headers: { token } }
+        );
 
-    if(token){
-      getUserApppointments()
+        if (data.success) {
+          toast.success(data.message);
+        } else {
+          toast.error(data.message);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
     }
-
-  },[token])
-  
+  };
 
   return (
-    <div className='m-[3rem]'>
-      <p className='pb-3 mt-12 font-medium text-zinc-700 border-b'>My appointments</p>
+    <div className="m-[3rem]">
+      <p className=" font-medium text-zinc-700 border-b">My Beds</p>
       <div>
-        {appointments.map((item, index) => (
-          <div className=' grid md:grid-cols-[1fr_2fr] gap-4 sm:flex  sm:gap-6 py-2 border-b' key={index}>
-            <div>
-              <img className='w-40 bg-indigo-100' src={item.docData.image} alt="" />
+        {beds.length > 0 ? (
+          beds.map((bed) => (
+            <div
+              className="grid md:grid-cols-[1fr_2fr]  sm:flex sm:gap-6 py-4 border-b"
+              key={bed._id}
+            >
+              <div className="flex items-center justify-center">
+                <img
+                  className="w-70 h-60 md:w-60 md:h-40 object-cover rounded-lg"
+                  src={bed.hospitalImage || "/default-hospital.jpg"}
+                  alt="Hospital"
+                  onError={(e) => {
+                    e.target.src = "/default-hospital.jpg";
+                  }}
+                />
+              </div>
+              <div className="flex-1 text-sm text-zinc-600 mt-3">
+                <p className="text-neutral-800 font-semibold">{bed.patientName}</p>
+                <p className="text-zinc-800 font-medium">Bed {bed.bedId}</p>
+                <p className="text-zinc-700 font-medium mt-2">Hospital:</p>
+                <p className="text-sm">{bed.hospitalName}</p>
+                <p className="text-zinc-700 font-medium mt-2">Address:</p>
+                <p className="text-sm">{bed.hospitalAddress}</p>
+                <p className="text-zinc-700 font-medium mt-2">Date:</p>
+                <p className="text-sm">{slotFormatter(bed.date)}</p>
+                <p className="text-zinc-700 font-medium mt-2">Condition:</p>
+                <p className="text-sm">{bed.patientCondition}</p>
+              </div>
+              <div className="pt-2 flex flex-col justify-end">
+                <button
+                  onClick={() => cancelBedReservation(bed._id)}
+                  className="text-sm bg-red-600 text-white text-center sm:min-w-48 py-2 px-4 rounded hover:bg-red-700 transition-all duration-300"
+                >
+                  Cancel Reservation
+                </button>
+              </div>
             </div>
-            <div className='flex-1 text-sm text-zinc-600 mt-3'>
-              <p className='text-neutral-800 font-semibold'>{item.docData.name}</p>
-              <p className='text-zinc-800 font-medium '>{item.docData.speciality}</p>
-              <p className='text-zinc-700 font-medium mt-1'>Address:</p>
-              <p className='text-xs'>{item.docData.address.line2}</p>
-              <p className='text-xs'>{item.docData.address.line1}</p>
-              <p className='text-xs mt-1'> Date & Time: <span className='text-sm text-neutral-700 font-medium'>{item.slotDate}|{item.slotTime}</span></p>
-            </div>
-            <div></div>
-            <div className='flex flex-col gap-2 justify-end'>
-              <button className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 translate-all hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>
-              <button className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 translate-all hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Appointment</button>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="py-4 text-zinc-500">No bed reservations found.</p>
+        )}
       </div>
     </div>
   );
 };
 
-export default MyBed;
+export default MyBeds;

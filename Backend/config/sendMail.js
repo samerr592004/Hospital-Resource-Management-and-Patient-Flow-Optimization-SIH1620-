@@ -77,7 +77,7 @@
                 console.log(error)
                 return false
             }
-            console.log("success")
+            // console.log("success")
             res.end()
         });
         // console.log("Email sent successfully to:", user.email)

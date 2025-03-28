@@ -3,11 +3,19 @@ import { AppContext } from "../context/AppContext";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 const Myappointment = () => {
   const { backendUrl, token, doctors, getDoctorData } = useContext(AppContext);
   const [appointments, setAppointments] = useState([]);
   const [isTimeOut, setIsTimeOut] = useState({});
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  const slotFormatter = (slotDate) => {
+    const dateArray = slotDate.split("/");
+    return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
+  }
 
   // Fetch User Appointments
   const getUserAppointments = async () => {
@@ -21,6 +29,7 @@ const Myappointment = () => {
       }
     } catch (error) {
       console.error(error);
+      toast.error(error.message)
     }
   };
 
@@ -39,6 +48,26 @@ const Myappointment = () => {
 
     setIsTimeOut(updatedTimeouts);
   };
+
+  const cancelAppointment = async (appointmentId) => {
+    try {
+      console.log('ok')
+      const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, { appointmentId },  { headers: { token } })
+      console.log('ok')
+      if (data.success) {
+        toast.success(data.message)
+        getUserAppointments()
+        getDoctorData()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+
+      console.error(error);
+      toast.error(error.message)
+    }
+
+  }
 
   useEffect(() => {
     if (token) {
@@ -85,7 +114,7 @@ const Myappointment = () => {
       showCancelButton: true,
       confirmButtonText: "Submit",
       cancelButtonText: "Cancel",
-   
+
       didOpen: () => {
         const stars = document.querySelectorAll(".star");
         const ratingText = document.getElementById("rating-text");
@@ -151,13 +180,15 @@ const Myappointment = () => {
             <div className="flex-1 text-sm text-zinc-600 mt-3">
               <p className="text-neutral-800 font-semibold">{item.docData.name}</p>
               <p className="text-zinc-800 font-medium ">{item.docData.speciality}</p>
+              <p className="text-zinc-700 font-medium mt-1">Hospita:</p>
+              <p className="text-xs">{item.hospitalName}</p>
               <p className="text-zinc-700 font-medium mt-1">Address:</p>
-              <p className="text-xs">{item.docData.address.line2}</p>
-              <p className="text-xs">{item.docData.address.line1}</p>
+              <p className="text-xs">{item.hospitalAddress1}</p>
+              <p className="text-xs">{item.hospitalAddress2}</p>
               <p className="text-xs mt-1">
                 Date & Time:
-                <span className="text-sm text-neutral-700 font-medium">
-                  {item.slotDate} | {item.slotTime}
+                <span className="text-xs text-zinc-500 font-medium">
+                  {slotFormatter(item.slotDate)} | {item.slotTime}
                 </span>
               </p>
             </div>
@@ -179,9 +210,9 @@ const Myappointment = () => {
                   Skip
                 </button>
               ) : (
-                <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
-                  Cancel Appointment
-                </button>
+                !item.cancelled && <button onClick={()=>cancelAppointment(item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
+                Cancel Appointment
+              </button>
               )}
             </div>
           </div>

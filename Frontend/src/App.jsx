@@ -14,6 +14,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import HospitalDetails from './pages/HospitalDetails';
 import BedStatus from './pages/BedStatus';
+import MyBeds from './pages/MyBeds';
 
 
 const App = () => {
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/my-profile" element={<Myprofile />} />
         <Route path="/my-appointments" element={<Myappointment />} />
+        <Route path="/my-beds" element={<MyBeds />} />
         <Route path="/appointment/:docId" element={<Appointment />} />
         <Route path="hospital/:hospitalId/doctors/appointment/:docId" element={<Appointment />} />
         

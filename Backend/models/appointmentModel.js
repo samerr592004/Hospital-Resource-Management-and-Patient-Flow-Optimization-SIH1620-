@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 const appointmentSchema = new mongoose.Schema({
+    hospitalName: { type: String, required: true },
+    hospitalAddress1: { type: String, required: true },
+    hospitalAddress2: { type: String, required: true },
     userId: { type: String, required: true },
     docId: { type: String, required: true },
     slotDate: { type: String, required: true },
