@@ -15,7 +15,7 @@ const MyBeds = () => {
     return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
   }
 
-  const cancelBedReservation = async (bedId) => {
+  const cancelBedReservation = async (bedKey) => {
     try {
       const result = await Swal.fire({
         title: "Are you sure?",
@@ -28,9 +28,10 @@ const MyBeds = () => {
       });
 
       if (result.isConfirmed) {
+        
         const { data } = await axios.post(
           `${backendUrl}/api/user/cancel-bed`,
-          { bedId },
+          { bedKey, },
           { headers: { token } }
         );
 
@@ -54,7 +55,7 @@ const MyBeds = () => {
           beds.map((bed) => (
             <div
               className="grid md:grid-cols-[1fr_2fr]  sm:flex sm:gap-6 py-4 border-b"
-              key={bed._id}
+              key={bed.hospitalId+bed.bedId}
             >
               <div className="flex items-center justify-center">
                 <img
@@ -80,7 +81,7 @@ const MyBeds = () => {
               </div>
               <div className="pt-2 flex flex-col justify-end">
                 <button
-                  onClick={() => cancelBedReservation(bed._id)}
+                  onClick={() => cancelBedReservation(bed.hospitalId+bed.bedId)}
                   className="text-sm bg-red-600 text-white text-center sm:min-w-48 py-2 px-4 rounded hover:bg-red-700 transition-all duration-300"
                 >
                   Cancel Reservation

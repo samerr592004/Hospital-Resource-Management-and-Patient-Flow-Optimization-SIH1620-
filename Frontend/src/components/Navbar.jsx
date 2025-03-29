@@ -73,6 +73,7 @@ function Navbar() {
                    <div className='min-w-48 bg-stone-200 rounded p-3 flex justify-center flex-col gap-4 text-medium'>
                    <p onClick={()=>navigate('my-profile')}  className="p-1 hover:text-primary cursor-pointer">My Profile</p>
                     <p onClick={()=>navigate('my-appointments')}  className="p-1 hover:text-primary cursor-pointer">My Appointment</p>
+                    <p onClick={()=>navigate('my-beds')}  className="p-1 hover:text-primary cursor-pointer">My Beds</p>
                     <p onClick={logout} className="p-1 hover:text-primary cursor-pointer">Logout</p>
                    </div>
 

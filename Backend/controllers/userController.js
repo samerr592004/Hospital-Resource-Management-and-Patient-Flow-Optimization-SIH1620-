@@ -151,16 +151,16 @@ const bookAppointment = async (req, res) => {
         const { userId, docId, slotDate, slotTime } = req.body
 
         const docData = await doctorModel.findById(docId).select("-password")
-        
+
         const hospital = await hospitalModel.findById(docData.hospital).select('name address city district zipcode -_id');
 
         if (!hospital) {
             return res.json({ success: false, message: "Hospital not available." })
         }
-        
-        const hospitalName = hospital.name; 
-        const hospitalAddress1= hospital.address+","+hospital.city+","
-        const hospitalAddress2=hospital.district+","+hospital.zipcode
+
+        const hospitalName = hospital.name;
+        const hospitalAddress1 = hospital.address + "," + hospital.city + ","
+        const hospitalAddress2 = hospital.district + "," + hospital.zipcode
 
 
         if (!docData.avilable) {
@@ -200,7 +200,7 @@ const bookAppointment = async (req, res) => {
             slotDate,
             date: Date.now()
         }
-       
+
 
         const newAppointment = new appointmentModel(appointmentData)
         await newAppointment.save()
@@ -394,8 +394,8 @@ const bookBed = async (req, res) => {
 //API for rateing]
 const giveRating = async (req, res) => {
     try {
-        const { userId, docId, appointmentId, stars, feedback }= req.body;
-      
+        const { userId, docId, appointmentId, stars, feedback } = req.body;
+
 
         if (!userId || !docId || !appointmentId || stars === undefined) {
             return json({ message: "Missing required fields" });
@@ -417,18 +417,18 @@ const giveRating = async (req, res) => {
             doctor.rating = {};
         }
         const user = await userModel.findById(userId);
-        const image =user.image
+        const image = user.image
 
         // Convert rating to float before storing
         const ratingFloat = parseFloat(stars).toFixed(1);
 
         // Update user's rating
         await doctorModel.findByIdAndUpdate(
-            doctor._id, 
-                { [`reviews.${userId}`]: { stars:ratingFloat, feedback,image ,name:user.name} }, 
+            doctor._id,
+            { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name } },
             { new: true, upsert: true }
-          );
-          
+        );
+
         // {...doctor.rating,{userId, { rating: ratingFloat, feedback }}};
         // Calculate new average rating
         const ratings = Object.values(doctor.reviews).map(entry => Number(entry.stars))
@@ -438,15 +438,15 @@ const giveRating = async (req, res) => {
 
         // console.log(averageRating , totalRating ,ratings)
 
-      
+
         console.log(averageRating)
 
         doctor.total_rate = parseFloat(averageRating);
-       
+
 
         await doctor.save();
 
-        res.json({success:true, message: "Your rating and feedback have been submitted.", totalRating: doctor.total_rate });
+        res.json({ success: true, message: "Your rating and feedback have been submitted.", totalRating: doctor.total_rate });
 
     } catch (error) {
         console.error(error);
@@ -454,39 +454,82 @@ const giveRating = async (req, res) => {
     }
 };
 
-const cancelAppointment = async (req, res)=>{
-    try{
-        const {userId,appointmentId}= req.body
+const cancelAppointment = async (req, res) => {
+    try {
+        const { userId, appointmentId } = req.body
 
-    const appointmentData = await appointmentModel.findById(appointmentId)
+        const appointmentData = await appointmentModel.findById(appointmentId)
 
-    if(appointmentData.userId !== userId){
-        return res.json({success:false,message:"Unauthorized action."})
-    }
+        if (appointmentData.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized action." })
+        }
 
-    await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
-
-
-    const {docId,slotDate,slotTime} = appointmentData
-
-    const doctorData = await doctorModel.findById(docId)
-
-    let slot_booked=doctorData.slot_booked
-
-    slot_booked[slotDate]= slot_booked[slotDate].filter(e=>e!== slotTime)
-
-    await doctorModel.findByIdAndUpdate(docId,{slot_booked})
-
-    // console.log(slots_booked)
-
-    res.json({success:true,message:"Appointment canceled."})
+        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
 
-    }catch(error){
+        const { docId, slotDate, slotTime } = appointmentData
+
+        const doctorData = await doctorModel.findById(docId)
+
+        let slot_booked = doctorData.slot_booked
+
+        slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+
+        await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+
+        // console.log(slots_booked)
+
+        res.json({ success: true, message: "Appointment canceled." })
+
+
+    } catch (error) {
         console.error(error);
         res.json({ message: "Internal server error" });
 
     }
 
 }
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating,cancelAppointment };
+
+const cancelBeds = async (req, res) => {
+    try {
+
+        const { bedKey, userId } = req.body
+
+        const userData = await userModel.findById(userId)
+
+        if (!userData) {
+            return res.json({ success: false, message: "User is not found." })
+        }
+
+
+        const beds = userData.beds
+        const hospitalId = beds[bedKey].hospitalId
+        const bedId = beds[bedKey].bedId
+
+
+
+        const hospitalData = hospitalModel.findById(hospitalId)
+
+        if (!hospitalData) {
+            return res.json({ success: false, message: "Hospital is not found." })
+        }
+
+        const bed_occupied=hospitalData.bed_occupied
+
+        bed_occupied
+
+
+
+
+
+
+
+
+
+
+    } catch (error) {
+
+    }
+
+}
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds };
