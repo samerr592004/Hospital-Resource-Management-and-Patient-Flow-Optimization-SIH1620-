@@ -52,7 +52,7 @@ const AdminContextProvider=(props)=>{
             const {data}=await axios.post(`${backendUrl}/api/admin/all-hopitals`,{}, { headers: { atoken: aToken } })
                 // console.log(data)
             if(data.success){
-                console.log(data.hospitals)
+                
                 setHospitals(data.hospitals)
                
             }

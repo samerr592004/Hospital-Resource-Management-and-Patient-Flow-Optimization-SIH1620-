@@ -81,7 +81,7 @@ const HospitalDetails = () => {
         <div className="mt-4 flex gap-4">
           <button
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
-            onClick={() => navigate(`/hospital/${hospitalId}/beds-statuse`, {
+            onClick={() => navigate(`/hospital/${hospitalId}/beds-status`, {
               state: {
                 bedNumber: hospital.bedNumber,
                 bedOccupiedData: hospital.bed_occupied || {}

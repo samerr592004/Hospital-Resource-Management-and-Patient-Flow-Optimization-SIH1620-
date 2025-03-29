@@ -492,44 +492,83 @@ const cancelAppointment = async (req, res) => {
 
 const cancelBeds = async (req, res) => {
     try {
+        const { bedKey, userId } = req.body;
 
-        const { bedKey, userId } = req.body
+        // Validate input
+        if (!bedKey || !userId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Missing bedKey or userId in request" 
+            });
+        }
 
-        const userData = await userModel.findById(userId)
-
+        // Find user and validate
+        const userData = await userModel.findById(userId);
         if (!userData) {
-            return res.json({ success: false, message: "User is not found." })
+            return res.json({ 
+                success: false, 
+                message: "User not found !" 
+            });
         }
 
+        // Get bed details from user's beds
+        const beds = { ...userData.beds }; // Create copy
+        if (!beds[bedKey]) {
+            return res.json({ 
+                success: false, 
+                message: "Bed reservation not found !" 
+            });
+        }
 
-        const beds = userData.beds
-        const hospitalId = beds[bedKey].hospitalId
-        const bedId = beds[bedKey].bedId
+        const { hospitalId, bedId } = beds[bedKey];
 
-
-
-        const hospitalData = hospitalModel.findById(hospitalId)
-
+        // Find hospital and validate
+        const hospitalData = await hospitalModel.findById(hospitalId);
         if (!hospitalData) {
-            return res.json({ success: false, message: "Hospital is not found." })
+            return res.json({ 
+                success: false, 
+                message: "Hospital not found !" 
+            });
         }
 
-        const bed_occupied=hospitalData.bed_occupied
+        // Create immutable copies before modification
+        const updatedBedOccupied = { ...hospitalData.bed_occupied };
+        const updatedUserBeds = { ...beds };
 
-        bed_occupied
+        // Remove the bed references
+        delete updatedBedOccupied[bedId];
+        delete updatedUserBeds[bedKey];
 
+        // Update both collections in parallel
+        await Promise.all([
+            hospitalModel.findByIdAndUpdate(
+                hospitalId,
+                { bed_occupied: updatedBedOccupied },
+                { new: true }
+            ),
+            userModel.findByIdAndUpdate(
+                userId,
+                { beds: updatedUserBeds },
+                { new: true }
+            )
+        ]);
 
-
-
-
-
-
-
-
+        return res.json({ 
+            success: true, 
+            message: "Bed reservation cancelled successfully.",
+            data: {
+                bedId,
+                hospitalId
+            }
+        });
 
     } catch (error) {
-
+        console.error("Error in cancelBeds:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+            error: error.message 
+        });
     }
-
-}
+};
 export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds };

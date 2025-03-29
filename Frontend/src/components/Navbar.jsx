@@ -109,8 +109,8 @@ function Navbar() {
             <NavLink
              className={({ isActive }) =>
             `group relative ${isActive ? 'text-primary animate-ease-in' : ''}`
-          }  onClick={()=>setShowMenu(false)} to='/doctors' >
-            <p className='px-4 py-2 rounedd inline-block'>All Doctor</p>
+          }  onClick={()=>setShowMenu(false)} to='/hospital' >
+            <p className='px-4 py-2 rounedd inline-block'>All Hospital</p>
           <hr className="transition-all duration-300 ease-in-out border-none outline-none h-0.5 bg-primary w-0 m-auto group-hover:w-3/5" />
           </NavLink>
 

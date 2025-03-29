@@ -15,6 +15,7 @@ const AppContextProvider=(props)=>{
   const [doctors,setDoctors]=useState([])
   const [userData,setUserData] = useState(false)
   const [hospitals, setHospitals] = useState([])
+  const [beds, setBeds] = useState([]);
 
 
 
@@ -54,6 +55,11 @@ const AppContextProvider=(props)=>{
             if(data.success){
                 // console.log('yes')
                 setUserData(data.userData)
+                // if (data.userData?.beds) {
+                //     setBeds(Object.values(data.userData.beds).filter(bed => bed !== null));
+                //   } else {
+                //     setBeds([]);
+                //   }
             }else{
                 // console.log("No")
                 toast.error(data.message)
@@ -67,6 +73,16 @@ const AppContextProvider=(props)=>{
     }
 
 
+    const getBeds = () => {
+        if (userData?.beds) {
+          const bedsArray = Object.values(userData.beds).reverse();
+          setBeds(bedsArray);
+        } else {
+          setBeds([]);
+        }
+      }
+
+
     const getHospitalData = async () =>{
         try{
 
@@ -74,6 +90,7 @@ const AppContextProvider=(props)=>{
 
             if(data.success){
                 setHospitals(data.hospital)
+                console.log(hospitals)
 
             }else{
                 toast.error(data.hospital)
@@ -96,6 +113,8 @@ const AppContextProvider=(props)=>{
         userData,setUserData,
         loadUserProfileData,
         hospitals,setHospitals,
+        beds,setBeds,
+        getBeds,
         getHospitalData
     }
 
@@ -116,6 +135,14 @@ const AppContextProvider=(props)=>{
             setUserData(false)
         }
     },[token])
+
+    useEffect(()=>{
+        if(token){
+            getBeds()
+        }else{
+            getBeds([])
+        }
+    },[token,userData,hospitals])
 
 
 

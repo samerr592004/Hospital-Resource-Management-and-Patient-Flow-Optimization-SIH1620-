@@ -1,14 +1,19 @@
-import React, { useContext } from "react";
+import React, { useState,useContext,useEffect } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 
+
 const MyBeds = () => {
-  const { backendUrl, token, userData } = useContext(AppContext);
+  const { backendUrl, token,  loadUserProfileData ,getHospitalData ,beds,getBeds} = useContext(AppContext);
+  
+
+
   
   // Extract beds data from userData
-  const beds = userData ? Object.values(userData.beds) : [];
+ 
+
   const slotFormatter = (slotDate) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const dateArray = slotDate.split("/");
@@ -31,14 +36,30 @@ const MyBeds = () => {
         
         const { data } = await axios.post(
           `${backendUrl}/api/user/cancel-bed`,
-          { bedKey, },
+          { bedKey },
           { headers: { token } }
         );
 
         if (data.success) {
-          toast.success(data.message);
+          await Promise.all([
+            loadUserProfileData(), // Updates userData via setUserData()
+            getHospitalData(),    // Updates hospitals data
+            getBeds()
+          ]);
+          
+          await Swal.fire({
+            title: "Success!",
+            text: data.message,
+            icon: "success",
+            confirmButtonText: "OK"
+          });
         } else {
-          toast.error(data.message);
+          await Swal.fire({
+            title: "Error!",
+            text: data.message,
+            icon: "error",
+            confirmButtonText: "OK"
+          });
         }
       }
     } catch (error) {
@@ -46,6 +67,13 @@ const MyBeds = () => {
       toast.error(error.message);
     }
   };
+
+
+  useEffect(() => {
+    getBeds();
+  }, [beds]); // Ensures that the latest booked/canceled beds are reflected
+  
+  
 
   return (
     <div className="m-[3rem]">

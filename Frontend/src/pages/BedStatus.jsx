@@ -10,11 +10,11 @@ import axios from "axios";
 const BedStatus = () => {
   const { hospitalId } = useParams();  // Hospital ID from URL params (Note: check spelling)
   const location = useLocation();
-  const { backendUrl, token, getHospitalData, hospitals ,userData,loadUserProfileData} = useContext(AppContext);
+  const { backendUrl, token, getHospitalData, hospitals ,userData,loadUserProfileData,getBeds} = useContext(AppContext);
   const navigate = useNavigate();
 
   const { bedNumber } = location.state || {};
-  const [bedOccupiedData, setBedOccupiedData] = useState(location.state?.bedOccupiedData || {});
+  const [bedOccupiedData, setBedOccupiedData,beds] = useState(location.state?.bedOccupiedData || {});
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedBedId, setSelectedBedId] = useState(null);
@@ -27,13 +27,10 @@ const BedStatus = () => {
       const hospital = hospitals.find(hosp => hosp._id === hospitalId);
       setBedOccupiedData(hospital?.bed_occupied || {}); // Update state when hospitals data changes
     }
-  }, [hospitals, hospitalId]);
+  }, [hospitals, hospitalId,beds]);
   
 
 
-  // console.log(hospitalId)
-
-  // **Find the Hospital from 'hospitals' list**
   const hospital = hospitals.find(hosp => hosp._id === hospitalId ) || {}
   const hospitalName = hospital?.name || "Unknown Hospital";
   const hospitalImage = hospital?.image || "https://via.placeholder.com/400";  // Fallback image
@@ -116,8 +113,12 @@ const BedStatus = () => {
       setShowModal(false)
       setPatientName("")
       setPatientCondition("")
-      await loadUserProfileData()
-      await getHospitalData()
+      await Promise.all([
+        loadUserProfileData(), 
+        getHospitalData(),
+      
+      ])
+      navigate("/my-beds")
      toast.success(data.message)
      
     } else {
