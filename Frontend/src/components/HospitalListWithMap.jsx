@@ -180,7 +180,7 @@ const HospitalListWithMap = () => {
         </div>
 
         {/* Map */}
-        <div className="sm:5 w-full lg:w-1/2 h-[50vh] lg:h-full relative pt-4 lg:pt-0">
+        <div className="sm:5 w-full lg:w-1/2 h-[50vh] lg:h-full relative z-0 pt-4 lg:pt-0">
           {userLocation && (
             <MapContainer center={userLocation} zoom={13} style={{ width: "100%", height: "100%" }} zoomControl={true}>
               <TileLayer url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap contributors, Tiles courtesy of HOT' />

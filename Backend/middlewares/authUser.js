@@ -8,7 +8,7 @@ const authUser=async(req,res,next)=>{
     try{
 
         const {token}=req.headers
-        // console.log(token)
+        // console.log("ok "+token)
         
         if(!token){
             return res.json({ success: false,token:token, message: "Not  Authorized Login Again"});

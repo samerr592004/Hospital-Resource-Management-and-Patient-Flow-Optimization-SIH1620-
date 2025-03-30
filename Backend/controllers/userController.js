@@ -394,59 +394,103 @@ const bookBed = async (req, res) => {
 //API for rateing]
 const giveRating = async (req, res) => {
     try {
-        const { userId, docId, appointmentId, stars, feedback } = req.body;
+        const skip = req.body
+
+        if (skip) {
+            const { userId, docId, appointmentId } = req.body;
+
+            if (!userId || !docId || !appointmentId) {
+                return json({ message: "Missing required fields" });
+            }
+
+            const doctorData = await doctorModel.findById(docId)
+
+            let slot_booked = doctorData.slot_booked
+    
+            slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+    
+            await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+
+            const result = await appointmentModel.deleteOne({ _id: appointmentId });
+            console.log(result)
+
+            if (result.deletedCount === 1) {
+                return res.json({ 
+                    success: true,
+                    message: "Appointment successfully skipped and removed from your records." 
+                });
+            } else {
+                return res.status(500).json({ 
+                    success: false,
+                    message: "Failed to remove appointment. Please try again." 
+                });
+            }
+
+            
+
+        } else {
+            const { userId, docId, appointmentId, stars, feedback } = req.body;
 
 
-        if (!userId || !docId || !appointmentId || stars === undefined) {
-            return json({ message: "Missing required fields" });
+            if (!userId || !docId || !appointmentId || stars === undefined) {
+                return json({ message: "Missing required fields" });
+            }
+
+            const appointment = await appointmentModel.findOne({ _id: appointmentId, userId });
+
+            if (!appointment) {
+                return res.json({ message: "Appointment not found or unauthorized" });
+            }
+
+            const doctor = await doctorModel.findById(docId);
+
+            if (!doctor) {
+                return res.json({ message: "Doctor not found" });
+            }
+
+            if (!doctor.rating) {
+                doctor.rating = {};
+            }
+            const user = await userModel.findById(userId);
+            const image = user.image
+
+            // Convert rating to float before storing
+            const ratingFloat = parseFloat(stars).toFixed(1);
+
+            // Update user's rating
+            await doctorModel.findByIdAndUpdate(
+                doctor._id,
+                { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name } },
+                { new: true, upsert: true }
+            );
+
+            // {...doctor.rating,{userId, { rating: ratingFloat, feedback }}};
+            // Calculate new average rating
+            const ratings = Object.values(doctor.reviews).map(entry => Number(entry.stars))
+
+            const totalRating = ratings.reduce((sum, rating) => sum + rating, 0);
+            const averageRating = totalRating / ratings.length
+
+            // console.log(averageRating , totalRating ,ratings)
+
+
+            // console.log(averageRating)
+
+            doctor.total_rate = parseFloat(averageRating);
+
+            const doctorData = await doctorModel.findById(docId)
+
+            let slot_booked = doctorData.slot_booked
+    
+            slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+    
+            await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+
+
+            await doctor.save();
+
+            res.json({ success: true, message: "Your rating and feedback have been submitted."});
         }
-
-        const appointment = await appointmentModel.findOne({ _id: appointmentId, userId });
-
-        if (!appointment) {
-            return res.json({ message: "Appointment not found or unauthorized" });
-        }
-
-        const doctor = await doctorModel.findById(docId);
-
-        if (!doctor) {
-            return res.json({ message: "Doctor not found" });
-        }
-
-        if (!doctor.rating) {
-            doctor.rating = {};
-        }
-        const user = await userModel.findById(userId);
-        const image = user.image
-
-        // Convert rating to float before storing
-        const ratingFloat = parseFloat(stars).toFixed(1);
-
-        // Update user's rating
-        await doctorModel.findByIdAndUpdate(
-            doctor._id,
-            { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name } },
-            { new: true, upsert: true }
-        );
-
-        // {...doctor.rating,{userId, { rating: ratingFloat, feedback }}};
-        // Calculate new average rating
-        const ratings = Object.values(doctor.reviews).map(entry => Number(entry.stars))
-
-        const totalRating = ratings.reduce((sum, rating) => sum + rating, 0);
-        const averageRating = totalRating / ratings.length
-
-        // console.log(averageRating , totalRating ,ratings)
-
-
-        console.log(averageRating)
-
-        doctor.total_rate = parseFloat(averageRating);
-
-
-        await doctor.save();
-
-        res.json({ success: true, message: "Your rating and feedback have been submitted.", totalRating: doctor.total_rate });
 
     } catch (error) {
         console.error(error);
@@ -496,27 +540,27 @@ const cancelBeds = async (req, res) => {
 
         // Validate input
         if (!bedKey || !userId) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Missing bedKey or userId in request" 
+            return res.status(400).json({
+                success: false,
+                message: "Missing bedKey or userId in request"
             });
         }
 
         // Find user and validate
         const userData = await userModel.findById(userId);
         if (!userData) {
-            return res.json({ 
-                success: false, 
-                message: "User not found !" 
+            return res.json({
+                success: false,
+                message: "User not found !"
             });
         }
 
         // Get bed details from user's beds
         const beds = { ...userData.beds }; // Create copy
         if (!beds[bedKey]) {
-            return res.json({ 
-                success: false, 
-                message: "Bed reservation not found !" 
+            return res.json({
+                success: false,
+                message: "Bed reservation not found !"
             });
         }
 
@@ -525,9 +569,9 @@ const cancelBeds = async (req, res) => {
         // Find hospital and validate
         const hospitalData = await hospitalModel.findById(hospitalId);
         if (!hospitalData) {
-            return res.json({ 
-                success: false, 
-                message: "Hospital not found !" 
+            return res.json({
+                success: false,
+                message: "Hospital not found !"
             });
         }
 
@@ -553,8 +597,8 @@ const cancelBeds = async (req, res) => {
             )
         ]);
 
-        return res.json({ 
-            success: true, 
+        return res.json({
+            success: true,
             message: "Bed reservation cancelled successfully.",
             data: {
                 bedId,
@@ -564,10 +608,10 @@ const cancelBeds = async (req, res) => {
 
     } catch (error) {
         console.error("Error in cancelBeds:", error);
-        return res.status(500).json({ 
-            success: false, 
+        return res.status(500).json({
+            success: false,
             message: "Internal server error",
-            error: error.message 
+            error: error.message
         });
     }
 };

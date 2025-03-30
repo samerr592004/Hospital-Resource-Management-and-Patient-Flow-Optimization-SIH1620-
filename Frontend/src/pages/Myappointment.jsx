@@ -9,6 +9,7 @@ const Myappointment = () => {
   const { backendUrl, token, doctors, getDoctorData } = useContext(AppContext);
   const [appointments, setAppointments] = useState([]);
   const [isTimeOut, setIsTimeOut] = useState({});
+  const [skip, setSkip] = useState(false);
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -52,7 +53,7 @@ const Myappointment = () => {
   const cancelAppointment = async (appointmentId) => {
     try {
       console.log('ok')
-      const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, { appointmentId },  { headers: { token } })
+    const { data } = await axios.post(`${backendUrl}/api/user/cancel-appointment`, { appointmentId }, { headers: { token }},)
       console.log('ok')
       if (data.success) {
         toast.success(data.message)
@@ -68,34 +69,13 @@ const Myappointment = () => {
     }
 
   }
-
-  useEffect(() => {
-    if (token) {
-      getUserAppointments();
-    }
-  }, [token, doctors]);
-
-  useEffect(() => {
-    if (appointments.length > 0) {
-      checkAppointmentsTimeout(appointments);
-    }
-  }, [appointments]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkAppointmentsTimeout(appointments);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [appointments]);
-
   // Function to handle rating with SweetAlert2 (Emoji-based ratings + feedback)
   const handleRateAppointment = async (appointment) => {
     let selectedRating = 0;
     let feedbackText = "";
     let appointmentId = appointment._id;
     let docId = appointment.docId;
-    console.log(appointmentId);
+    // console.log(appointmentId);
 
     const { value } = await Swal.fire({
       title: "Rate Your Appointment",
@@ -143,11 +123,14 @@ const Myappointment = () => {
 
     if (selectedRating > 0) {
       try {
+        
+
         const { data } = await axios.post(
           `${backendUrl}/api/user/rate-appointment`,
-          { appointmentId, docId, stars: selectedRating, feedback: feedbackText },
-          { headers: { token } }
+          { appointmentId, docId, stars: selectedRating, feedback: feedbackText ,skip},
+          {headers: { token }},
         );
+       
 
         console.log(data);
         if (data.success) {
@@ -164,6 +147,81 @@ const Myappointment = () => {
       Swal.fire("Error", "Please click on a star to give a rating.", "error");
     }
   };
+
+  const handleSkip = async (appointment,) => {
+   
+    
+    try {
+        setSkip(true)
+        const appointmentId=appointment._id
+        const docId= appointment.docId
+         
+        console.log(skip)
+     
+  
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/rate-appointment`,
+      {appointmentId,docId,skip},
+        { headers: { token } }
+      );
+
+      // console.log(skip)
+  
+      if (data.success) {
+        await getDoctorData();
+        Swal.fire({
+          title: "Skipped!",
+          text: "Rating was skipped successfully",
+          icon: "success",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Could not skip rating",
+          icon: "error",
+          confirmButtonColor: "#d33",
+        });
+      }
+    } catch (error) {
+      console.error("Skip error:", error);
+      let errorMessage = "Could not skip rating.";
+      if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+  
+      Swal.fire({
+        title: "Error",
+        text: errorMessage,
+        icon: "error",
+        confirmButtonColor: "#d33",
+      });
+    } 
+  };
+
+  useEffect(() => {
+    if (token) {
+      getUserAppointments();
+    }
+  }, [token, doctors]);
+
+  useEffect(() => {
+    if (appointments.length > 0) {
+      checkAppointmentsTimeout(appointments);
+    }
+  }, [appointments]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkAppointmentsTimeout(appointments);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [appointments]);
+
+  
 
   return (
     <div className="m-[3rem]">
@@ -193,26 +251,31 @@ const Myappointment = () => {
               </p>
             </div>
             <div className="flex flex-col gap-2 justify-end">
-              {isTimeOut[item._id] ? (
-                <button
-                  onClick={() => handleRateAppointment(item)}
+              {
+              isTimeOut[item._id] ? (
+               !item.cancelled && <button
+                  onClick={() => handleRateAppointment(item,skip)}
                   className="text-sm bg-green-600 text-white text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300"
                 >
                   Rate Me
                 </button>
               ) : (
-                <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-primary hover:text-white">
+                !item.cancelled &&  <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-primary hover:text-white">
                   Pay Online
                 </button>
               )}
               {isTimeOut[item._id] ? (
-                <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
+               !item.cancelled ?
+                <button onClick={()=>handleSkip(item,skip)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
                   Skip
-                </button>
+                </button>:
+                 <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">Appointment Cancelled</button>
               ) : (
-                !item.cancelled && <button onClick={()=>cancelAppointment(item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
+                !item.cancelled ? <button onClick={()=>cancelAppointment(item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
                 Cancel Appointment
               </button>
+              : <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">Appointment Cancelled</button>
+              
               )}
             </div>
           </div>

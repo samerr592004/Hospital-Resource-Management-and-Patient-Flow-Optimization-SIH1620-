@@ -63,7 +63,7 @@ function Navbar() {
           <hr className="transition-all duration-300 ease-in-out border-none outline-none h-0.5 bg-primary w-0 m-auto group-hover:w-3/5" />
         </NavLink>
       </ul>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ">
         {
             token && userData
             ?<div className='flex items-center gap-3 cursor-pointer group relative'>
