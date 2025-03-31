@@ -5,6 +5,8 @@ import doctorModel from '../models/doctorModel.js';
 import hospitalModel from '../models/hospitalModel.js';
 import jwt from 'jsonwebtoken';
 import sharp from 'sharp';
+import appointmentModel from '../models/appointmentModel.js';
+import userModel from '../models/userModel.js';
 // Add Doctor
 const addDoctor = async (req, res) => {
   
@@ -238,5 +240,180 @@ const allHospitals= async (req,res)=>{
   }
 }
 
-export { addDoctor, loginAdmin,allDoctors,addHospital,allHospitals ,getDoctorByHospital};
+
+//API to get all appointmentlist
+const appointmentAdmin = async (req,res)=>{
+  try{
+
+    const appointments = await appointmentModel.find({})
+
+    res.json({success:true , appointments})
+
+  }catch(error){
+    console.log(error)
+    res.json({success:false,message:error.message})
+
+  }
+}
+
+const cancelAppointmentAdmin = async (req, res) => {
+  try {
+      const { appointmentId } = req.body
+
+      const appointmentData = await appointmentModel.findById(appointmentId)
+
+     
+      await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+
+
+      const { docId, slotDate, slotTime } = appointmentData
+
+      const doctorData = await doctorModel.findById(docId)
+
+      let slot_booked = doctorData.slot_booked
+
+      slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+
+      await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+
+      // console.log(slots_booked)
+
+      res.json({ success: true, message: "Appointment canceled." })
+
+
+  } catch (error) {
+      console.error(error);
+      res.json({ message: "Internal server error" });
+
+  }
+
+}
+
+//API for getting dashboard Data
+const adminDashboard = async (req,res)=>{
+  try{
+
+    const doctors = await doctorModel.find({})
+    const users =  await  userModel.find({})
+    const hospitals = await hospitalModel.find({})
+    const appointments =await appointmentModel.find({})
+
+    const today = new Date();
+    const todayFormatted = `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`;
+
+    const todayAppointmentsCount = await appointmentModel.countDocuments({
+      slotDate: todayFormatted,
+      cancelled: false
+    })
+    const specialtyDistribution = await doctorModel.aggregate([
+      {
+        $group: {
+          _id: '$speciality',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const revenueData = await appointmentModel.aggregate([
+      {
+        $match: {
+          cancelled: false,
+          payment: true,
+          date: { $gte: thirtyDaysAgo.getTime() }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$date" } } },
+          dailyRevenue: { $sum: "$amount" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    const ageDistribution = await userModel.aggregate([
+      {
+        $match: {
+          dob: { $ne: "Not Selected", $exists: true }
+        }
+      },
+      {
+        $addFields: {
+          birthYear: { $toInt: { $arrayElemAt: [{ $split: ["$dob", "/"] }, 2] } } // Assuming dob format: DD/MM/YYYY
+        }
+      },
+      {
+        $addFields: {
+          age: {
+            $subtract: [
+              new Date().getFullYear(),
+              "$birthYear"
+            ]
+          }
+        }
+      },
+      {
+        $bucket: {
+          groupBy: "$age",
+          boundaries: [0, 18, 30, 45, 60, 75, 100],
+          default: "Other",
+          output: {
+            count: { $sum: 1 }
+          }
+        }
+      }
+    ]);
+
+    
+    
+
+    const dashboardData={
+      doctors:doctors.length,
+      patients:users.length,
+      hospitals : hospitals.length,
+      appointments:appointments.length,
+      todayAppointmentsCount,
+      latetestAppointments:appointments.reverse().slice(0,10),
+      specialtyDistribution: {
+        labels: specialtyDistribution.map(s => s._id),
+        data: specialtyDistribution.map(s => s.count)
+      },
+      ageDistribution: {
+        labels: ageDistribution.map(a => {
+          if (a._id === 0) return "0-18";
+          if (a._id === 18) return "18-30";
+          if (a._id === 30) return "30-45";
+          if (a._id === 45) return "45-60";
+          if (a._id === 60) return "60-75";
+          return "75+";
+        }),
+        data: ageDistribution.map(a => a.count)
+      },
+      revenueTrend: {
+        labels: revenueData.map(r => r._id),
+        data: revenueData.map(r => r.dailyRevenue)
+      }
+    
+
+    }
+
+
+    // console.log(dashboardData)
+
+    res.json({success:true,dashboardData})
+
+  }catch(error){
+    console.error(error);
+    res.json({ message: "Internal server error" });
+  }
+}
+
+export { addDoctor, loginAdmin,allDoctors,addHospital,allHospitals ,getDoctorByHospital,appointmentAdmin,cancelAppointmentAdmin,adminDashboard};
   

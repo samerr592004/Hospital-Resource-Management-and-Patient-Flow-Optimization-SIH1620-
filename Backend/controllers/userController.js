@@ -8,6 +8,7 @@ import appointmentModel from '../models/appointmentModel.js';
 import hospitalModel from '../models/hospitalModel.js';
 import nodemailer from 'nodemailer'
 import sendMail from '../config/sendMail.js';
+import razorpay from 'razorpay'
 // Register User API
 const registerUser = async (req, res) => {
     try {
@@ -397,9 +398,9 @@ const giveRating = async (req, res) => {
         const skip = req.body
 
         if (skip) {
-            const { userId, docId, appointmentId } = req.body;
+            const { userId, docId, appointmentId,slotDate,slotTime } = req.body;
 
-            if (!userId || !docId || !appointmentId) {
+            if (!userId || !docId || !appointmentId || !slotDate  || !slotTime) {
                 return json({ message: "Missing required fields" });
             }
 
@@ -411,25 +412,13 @@ const giveRating = async (req, res) => {
     
             await doctorModel.findByIdAndUpdate(docId, { slot_booked })
 
-            const result = await appointmentModel.deleteOne({ _id: appointmentId });
-            console.log(result)
+            await appointmentModel.findByIdAndUpdate(appointmentId,{isCompleted:true,payment:true })
 
-            if (result.deletedCount === 1) {
-                return res.json({ 
-                    success: true,
-                    message: "Appointment successfully skipped and removed from your records." 
-                });
-            } else {
-                return res.status(500).json({ 
-                    success: false,
-                    message: "Failed to remove appointment. Please try again." 
-                });
-            }
 
             
 
         } else {
-            const { userId, docId, appointmentId, stars, feedback } = req.body;
+            const { userId, docId, appointmentId, stars, feedback ,slotDate,slotTime} = req.body;
 
 
             if (!userId || !docId || !appointmentId || stars === undefined) {
@@ -484,7 +473,9 @@ const giveRating = async (req, res) => {
     
             slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
     
-            await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+            await doctorModel.findByIdAndUpdate(docId, { slot_booked})
+
+            await appointmentModel.findByIdAndUpdate(appointmentId,{isCompleted:true,payment:true })
 
 
             await doctor.save();
@@ -498,6 +489,7 @@ const giveRating = async (req, res) => {
     }
 };
 
+// API for cancel the appointment
 const cancelAppointment = async (req, res) => {
     try {
         const { userId, appointmentId } = req.body
@@ -534,6 +526,8 @@ const cancelAppointment = async (req, res) => {
 
 }
 
+
+//API for cancel be reservation
 const cancelBeds = async (req, res) => {
     try {
         const { bedKey, userId } = req.body;
@@ -615,4 +609,17 @@ const cancelBeds = async (req, res) => {
         });
     }
 };
+
+
+// const razorpayInstance = new razorpay({
+//     key_id:'',
+//     key_secret:''
+// })
+
+//API for payment of appointment online
+const paymentRazorpay = async (req,res)=>{
+
+
+}
+
 export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds };

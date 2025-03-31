@@ -11,9 +11,11 @@ const Myappointment = () => {
   const [isTimeOut, setIsTimeOut] = useState({});
   const [skip, setSkip] = useState(false);
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  
 
   const slotFormatter = (slotDate) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
     const dateArray = slotDate.split("/");
     return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
   }
@@ -127,7 +129,7 @@ const Myappointment = () => {
 
         const { data } = await axios.post(
           `${backendUrl}/api/user/rate-appointment`,
-          { appointmentId, docId, stars: selectedRating, feedback: feedbackText ,skip},
+          { appointmentId, docId, stars: selectedRating, feedback: feedbackText ,skip,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
           {headers: { token }},
         );
        
@@ -148,7 +150,7 @@ const Myappointment = () => {
     }
   };
 
-  const handleSkip = async (appointment,) => {
+  const handleSkip = async (appointment) => {
    
     
     try {
@@ -161,11 +163,11 @@ const Myappointment = () => {
   
       const { data } = await axios.post(
         `${backendUrl}/api/user/rate-appointment`,
-      {appointmentId,docId,skip},
+      {appointmentId,docId,skip,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
         { headers: { token } }
       );
 
-      // console.log(skip)
+      console.log(data)
   
       if (data.success) {
         await getDoctorData();
@@ -254,7 +256,7 @@ const Myappointment = () => {
               {
               isTimeOut[item._id] ? (
                !item.cancelled && <button
-                  onClick={() => handleRateAppointment(item,skip)}
+                  onClick={() => handleRateAppointment(item)}
                   className="text-sm bg-green-600 text-white text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300"
                 >
                   Rate Me
@@ -266,7 +268,7 @@ const Myappointment = () => {
               )}
               {isTimeOut[item._id] ? (
                !item.cancelled ?
-                <button onClick={()=>handleSkip(item,skip)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
+                <button onClick={()=>handleSkip(item)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:scale-105 transition-all duration-300 hover:bg-red-600 hover:text-white">
                   Skip
                 </button>:
                  <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">Appointment Cancelled</button>
