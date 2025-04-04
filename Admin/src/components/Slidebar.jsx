@@ -4,9 +4,11 @@ import { NavLink } from 'react-router-dom';
 import { assets } from '../assets/assets';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons'; // Close icon
+import { DoctorContext } from '../contexts/DoctorContext';
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const { aToken } = useContext(AdminContext);
+  const { dToken } = useContext(DoctorContext);
 
   const logout = () => {
     localStorage.removeItem('aToken');
@@ -126,6 +128,79 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             <img src={assets.map_search_icon} alt="" className="w-7" /> {/* Updated icon size */}
             <p>Find Place</p>
           </NavLink>
+
+          {/* Logout Button */}
+          <div className="block md:hidden mt-4 px-3 md:px-9">
+            <button
+              onClick={logout}
+              className="bg-primary text-white text-sm px-10 py-2 rounded-full w-full md:w-auto"
+            >
+              Logout
+            </button>
+          </div>
+        </ul>
+      )}
+      {dToken && (
+        <ul className={`text-[#515151] ${isSidebarOpen ? 'mt-10' : ''}`}>
+          <NavLink
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer transition-all duration-300 ease-in-out ${
+                isActive
+                  ? 'bg-[#F2F3FF] border-r-4 border-primary transform text-primary' // Added text-primary for active link
+                  : 'hover:bg-[#F2F3FF] hover:border-r-4 hover:border-primary hover:transform hover:translate-x-1'
+              }`
+            }
+            to={'/doctor-dashboard'}
+          >
+            <img src={assets.home_icon} alt="" className="w-7" /> {/* Updated icon size */}
+            <p>Dashboard</p>
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer transition-all duration-300 ease-in-out ${
+                isActive
+                  ? 'bg-[#F2F3FF] border-r-4 border-primary transform text-primary' // Added text-primary for active link
+                  : 'hover:bg-[#F2F3FF] hover:border-r-4 hover:border-primary hover:transform hover:translate-x-1'
+              }`
+            }
+            to={'/doctor-appointments'}
+          >
+            <img src={assets.appointment_icon} alt="" className="w-7" /> {/* Updated icon size */}
+            <p>Appointments</p>
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer transition-all duration-300 ease-in-out ${
+                isActive
+                  ? 'bg-[#F2F3FF] border-r-4 border-primary transform text-primary' // Added text-primary for active link
+                  : 'hover:bg-[#F2F3FF] hover:border-r-4 hover:border-primary hover:transform hover:translate-x-1'
+              }`
+            }
+            to={'/doctor-testimonials'}
+          >
+            <img src={assets.testimonial_icon} alt="" className="w-7" /> {/* Updated icon size */}
+            <p>Testimonials</p>
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) =>
+              `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer transition-all duration-300 ease-in-out ${
+                isActive
+                  ? 'bg-[#F2F3FF] border-r-4 border-primary transform text-primary' // Added text-primary for active link
+                  : 'hover:bg-[#F2F3FF] hover:border-r-4 hover:border-primary hover:transform hover:translate-x-1'
+              }`
+            }
+            to={'/doctor-profile'}
+          >
+            <img src={assets.profile_icon} alt="" className="w-7" /> {/* Updated icon size */}
+            <p>Profile</p>
+          </NavLink>
+
+       
+
+          
 
           {/* Logout Button */}
           <div className="block md:hidden mt-4 px-3 md:px-9">

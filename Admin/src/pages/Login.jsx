@@ -6,6 +6,7 @@ import axios from 'axios';
 import { AdminContext } from '../contexts/AdminContext.jsx';
 import { toast, ToastContainer } from 'react-toastify'; // ✅ Correct import
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Required CSS for Toastify
+import { DoctorContext } from '../contexts/DoctorContext.jsx';
 
 function Login() {
   const [state, setState] = useState('Admin');
@@ -14,14 +15,15 @@ function Login() {
   const [password, setPassword] = useState('');
 
   const { setAToken, backendUrl } = useContext(AdminContext);
+  const { setDToken } = useContext(DoctorContext);
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     try {
       if (state === 'Admin') {
-        console.log('ok')
+       
         const response = await axios.post(`${backendUrl}/api/admin/login`, { email, password });
-        console.log('ok')
+       
         const { data } = response; 
         
 
@@ -32,6 +34,17 @@ function Login() {
         } else {
           toast.error(data.message, { position: "top-right" });
         }
+      }else{
+        const {data} = await axios.post(`${backendUrl}/api/doctor/login`, { email, password });
+        if (data.success) {
+          localStorage.setItem('dToken', data.token);
+          setDToken(data.token);
+          console.log(data.token)
+          // toast.success(data.message, { position: "top-right" });
+        } else {
+          toast.error(data.message, { position: "top-right" });
+        }
+
       }
       
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
@@ -6,14 +6,14 @@ export const AdminContext = createContext()
 
 
 const AdminContextProvider = (props) => {
-
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
     const [aToken, setAToken] = useState(localStorage.getItem('aToken') ? localStorage.getItem('aToken') : '')
     const [doctors, setDoctors] = useState([])
     const [hospitals, setHospitals] = useState([])
     const [appointments, setAppointments] = useState([])
     const [loading, setLoading] = useState(true);
     const [dashboardData, setDashboardData] = useState(false)
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
+    L
 
 
     const getAllDoctors = async () => {
@@ -23,7 +23,7 @@ const AdminContextProvider = (props) => {
 
             if (data.success) {
                 setDoctors(data.doctors)
-                // console.log(data.doctors)
+                
             }
         } catch (error) {
             toast.error(error.message)
@@ -134,7 +134,7 @@ const AdminContextProvider = (props) => {
 
             if(data.success){
                 setDashboardData(data.dashboardData)
-                console.log(data.dashboardData)
+                
             }else{
                 toast.error(data.message)
                 
@@ -145,6 +145,14 @@ const AdminContextProvider = (props) => {
             toast.error(error.message)
         }
     }
+
+
+    useEffect(() => {
+      if(aToken){
+        getDashboardData()
+      }
+    }, [aToken])
+    
 
 
 
@@ -173,6 +181,8 @@ const AdminContextProvider = (props) => {
 
         </AdminContext.Provider>
     )
+
+
 
 }
 

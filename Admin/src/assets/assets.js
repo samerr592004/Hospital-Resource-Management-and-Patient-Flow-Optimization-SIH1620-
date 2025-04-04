@@ -14,6 +14,8 @@ import patients_icon from './patients_icon.svg'
 import hospital_icon  from './hospital_icon.svg'
 import map_search_icon  from './map_search_icon.svg'
 import hospital_list_icon from './hospital_list.svg'
+import profile_icon from './profile_icon.svg'
+import testimonial_icon from './testimonials_icon.svg'
 
 export const assets = {
     add_icon,
@@ -31,5 +33,7 @@ export const assets = {
     earning_icon,
     hospital_icon,
     map_search_icon,
-    hospital_list_icon
+    hospital_list_icon,
+    profile_icon,
+    testimonial_icon
 }

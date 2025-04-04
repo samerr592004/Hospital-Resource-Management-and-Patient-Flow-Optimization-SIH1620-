@@ -14,16 +14,23 @@ import AddHospital from "./pages/Admin/AddHospital";
 import Map from "./pages/Admin/Map";
 import HospitalList from "./pages/Admin/hospitalList";
 import BedStatus from "./pages/Admin/BedStatus";
+import { DoctorContext } from "./contexts/DoctorContext";
+import DoctorDashboard from "./pages/Doctor/DoctorDashboard";
+import DoctorApppointment from "./pages/Doctor/DoctorApppointment";
+import DoctorProfile from "./pages/Doctor/DoctorProfile";
+import DoctorTestimonials from "./pages/Doctor/DoctorTestimonials";
+
 
 function App() {
   const { aToken } = useContext(AdminContext);
+  const { dToken } = useContext(DoctorContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to control Sidebar visibility
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen); // Toggle Sidebar visibility
   };
 
-  return aToken ? (
+  return aToken || dToken? (
     <div className='bg-[#F8F9Fd]'>
       <ToastContainer />
       {/* Navbar with toggleSidebar function */}
@@ -32,6 +39,7 @@ function App() {
         {/* Sidebar with isSidebarOpen and toggleSidebar props */}
         <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <Routes>
+          {/* Admin Rout */}
           <Route path="/" element={<></>} />
           <Route path="/admin-dashboard" element={<Dashboard />} />
           <Route path="/all-appointment" element={<AllAppointment />} />
@@ -42,7 +50,19 @@ function App() {
           <Route path="/hospital-list/:hospitalId/doctors" element={<DoctorList />} />
           <Route path="/hospital-list/:hospitalId/beds" element={<BedStatus />} />
           <Route path="/map" element={<Map />} />
+
+          {/* Doctor Rout */}
+          {/* <Route path="/" element={<DoctorDashboard/>} /> */}
+          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor-appointments" element={<DoctorApppointment/>} />
+          <Route path="/doctor-profile" element={<DoctorProfile/>} />
+          <Route path="/doctor-testimonials" element={<DoctorTestimonials/>} />
+
+
+
         </Routes>
+
+        
       </div>
     </div>
   ) : (

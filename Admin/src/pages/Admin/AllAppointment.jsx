@@ -41,7 +41,7 @@ const AllAppointment = () => {
   const totalPages = Math.ceil(appointments.length / appointmentsPerPage);
 
   return (
-    <div className="w-full max-w-6xl mx-4 sm:mx-5">
+    <div className="w-full max-w-6xl mx-4 mt-5 sm:mx-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
         <p className="text-lg font-medium">All Appointments</p>
         <div className="flex items-center gap-2 mt-2 sm:mt-0">

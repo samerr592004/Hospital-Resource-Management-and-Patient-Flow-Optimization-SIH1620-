@@ -24,7 +24,7 @@ const AddDoctor = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showCropPopup, setShowCropPopup] = useState(false);
 
-  const { backendUrl, aToken, hospitals, getAllHospitals } = useContext(AdminContext);
+  const { backendUrl, aToken, hospitals, getAllHospitals,getAllDoctors } = useContext(AdminContext);
 
   useEffect(() => {
     if (aToken) {
@@ -73,6 +73,8 @@ const AddDoctor = () => {
 
       const { data } = await axios.post(`${backendUrl}/api/admin/add-doctor`, formData, { headers: { atoken: aToken } });
       if (data.success) {
+        await getAllHospitals()
+        await getAllDoctors()
         toast.success(data.message);
       } else {
         toast.error(data.message);
