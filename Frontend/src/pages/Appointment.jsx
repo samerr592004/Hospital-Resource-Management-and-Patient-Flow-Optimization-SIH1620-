@@ -186,7 +186,7 @@ function Appointment() {
             <div className="flex flex-col gap-3 w-full max-w-xs animate-fadeIn">
   {/* Rating header with pulse animation */}
   <div className="flex items-center gap-2">
-    <p className="text-3xl font-bold animate-pulse">{docInfo.total_rate || '4.2'}</p>
+    <p className="text-3xl font-bold animate-pulse">{docInfo.total_rate }</p>
     <svg 
       className="w-6 h-6 text-yellow-400 animate-bounce" 
       fill="currentColor" 

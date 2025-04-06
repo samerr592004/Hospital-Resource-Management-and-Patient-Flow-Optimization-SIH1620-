@@ -9,7 +9,7 @@ const Myappointment = () => {
   const { backendUrl, token, doctors, getDoctorData } = useContext(AppContext);
   const [appointments, setAppointments] = useState([]);
   const [isTimeOut, setIsTimeOut] = useState({});
-  const [skip, setSkip] = useState(false);
+ 
 
   
 
@@ -37,17 +37,33 @@ const Myappointment = () => {
   };
 
   // Check if appointment has passed
-  const checkAppointmentsTimeout = (appointmentsList) => {
+  const checkAppointmentsTimeout = async (appointmentsList) => {
     const now = new Date();
     let updatedTimeouts = {};
 
-    appointmentsList.forEach((appointment) => {
+    for (const appointment of appointmentsList) {
       const [day, month, year] = appointment.slotDate.split("/").map(Number);
       const slotTime = appointment.slotTime.toUpperCase();
-
+  
       const appointmentDateTime = new Date(`${year}-${month}-${day} ${slotTime}`);
+      
+  
+      if (appointmentDateTime < now && appointment.isCompleted===false) {
+        try {
+          const { data } = await axios.post(
+            `${backendUrl}/api/user/timeout-appointment`,
+            {appointmentId:appointment._id},
+            { headers: { token } }
+          );
+  
+          console.log(data);
+        } catch (err) {
+          console.error("Error marking timeout appointment:", err);
+        }
+      }
+  
       updatedTimeouts[appointment._id] = appointmentDateTime < now;
-    });
+    }
 
     setIsTimeOut(updatedTimeouts);
   };
@@ -77,7 +93,7 @@ const Myappointment = () => {
     let feedbackText = "";
     let appointmentId = appointment._id;
     let docId = appointment.docId;
-    // console.log(appointmentId);
+    
 
     const { value } = await Swal.fire({
       title: "Rate Your Appointment",
@@ -122,19 +138,20 @@ const Myappointment = () => {
         });
       },
     });
+   
 
     if (selectedRating > 0) {
       try {
         
+       
 
-        const { data } = await axios.post(
+        const {data} = await axios.post(
           `${backendUrl}/api/user/rate-appointment`,
-          { appointmentId, docId, stars: selectedRating, feedback: feedbackText ,skip,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
+          { appointmentId, docId, stars: selectedRating, feedback: feedbackText ,skip: false,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
           {headers: { token }},
         );
        
-
-        console.log(data);
+       
         if (data.success) {
           getDoctorData();
           Swal.fire("Thank You!", data.message, "success");
@@ -154,16 +171,15 @@ const Myappointment = () => {
    
     
     try {
-        setSkip(true)
+       
         const appointmentId=appointment._id
         const docId= appointment.docId
          
-        console.log(skip)
-     
+       
   
       const { data } = await axios.post(
         `${backendUrl}/api/user/rate-appointment`,
-      {appointmentId,docId,skip,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
+      {appointmentId,docId,skip:true,slotTime:appointment.slotTime,slotDate:appointment.slotDate},
         { headers: { token } }
       );
 
@@ -230,7 +246,7 @@ const Myappointment = () => {
       <p className="pb-3 mt-12 font-medium text-zinc-700 border-b">My appointments</p>
       <div>
         {appointments.map((item) => (
-          <div
+           <div
             className="grid md:grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b"
             key={item._id}
           >
