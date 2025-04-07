@@ -1,22 +1,29 @@
 import React, { useContext, useState } from 'react';
 import { assets } from '../assets/assets';
 import { AdminContext } from '../contexts/AdminContext';
+import { DoctorContext} from '../contexts/DoctorContext';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons'; // Hamburger menu icon
 
 function Navbar({ toggleSidebar }) {
   const { aToken, setAToken } = useContext(AdminContext);
+  const { dToken, setDToken } = useContext(DoctorContext);
   const navigate = useNavigate();
 
   const logout = () => {
     navigate('/');
+    if(aToken){
     aToken && setAToken('');
     aToken && localStorage.removeItem('aToken');
+    }else{
+      dToken && setDToken('');
+      dToken && localStorage.removeItem('aToken');
+    }
   };
 
   return (
-    <div className='flex  justify-between items-center px-4 sm:px-10 py-3 border-b bg-white '>
+    <div className='flex sticky   justify-between items-center px-4 sm:px-10 py-3 border-b bg-white '>
       <div className='flex items-center gap-2 text-xs'>
         {/* Hamburger Menu (Visible on Mobile and Tablet) */}
        

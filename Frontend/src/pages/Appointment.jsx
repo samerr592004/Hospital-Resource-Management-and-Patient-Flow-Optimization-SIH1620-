@@ -38,6 +38,7 @@ function Appointment() {
       feedback: review?.feedback || "No comment provided.",
       stars: review?.stars || 0,
       image: review?.image,
+      data:review.date
     }))
     : [];
 
@@ -82,7 +83,7 @@ function Appointment() {
         const slotTime = formattedtime;
 
         const isSlotAvailable =
-          docInfo.slot_booked[slotDate] && docInfo.slot_booked[slotDate].includes(slotTime)
+          docInfo.slot_booked[slotDate] && docInfo.slot_booked[slotDate].includes(slotTime) 
             ? false
             : true;
 

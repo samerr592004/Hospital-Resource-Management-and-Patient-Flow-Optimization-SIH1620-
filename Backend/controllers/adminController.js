@@ -9,17 +9,17 @@ import appointmentModel from '../models/appointmentModel.js';
 import userModel from '../models/userModel.js';
 // Add Doctor
 const addDoctor = async (req, res) => {
-  
+
   try {
 
 
-    const { name, email, password, speciality, degree, experience, about, fees, address , hospital} = req.body;
+    const { name, email, password, speciality, degree, experience, about, fees, address, hospital } = req.body;
     const imageFile = req.file;
 
 
 
     // Validate required fields
-    if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address ||  !hospital) {
+    if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address || !hospital) {
       return res.json({ success: false, message: 'Missing Details' });
     }
 
@@ -27,10 +27,10 @@ const addDoctor = async (req, res) => {
 
     // Validate email format
     if (!validator.isEmail(email)) {
-      
+
       return res.json({ success: false, message: 'Please enter a valid email' });
     }
- 
+
 
     // Validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -51,21 +51,12 @@ const addDoctor = async (req, res) => {
     let imageUrl = null;
     if (imageFile) {
       try {
-
-
-        const resizedImagePath = `uploads/resized-${Date.now()}.jpg`;
-        await sharp(imageFile.path)
-          .resize(411, 411) // Resize to 300x300 pixels
-          .toFormat('jpeg') // Convert to JPEG format
-          .jpeg({ quality: 80 }) // Adjust quality
-          .toFile(resizedImagePath);  // Save resized image locally
-
-        // Upload resized image to Cloudinary
-        const imageUpload = await cloudinary.uploader.upload(resizedImagePath, { resource_type: 'image' });
-        imageUrl = imageUpload.secure_url;
+        // Directly upload the original image to Cloudinary
+        const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+          resource_type: 'image'
+        });
+        const imageUrl = imageUpload.secure_url;
       } catch (error) {
-
-
         return res.json({ success: false, message: 'Image upload failed', error: error.message });
       }
     }
@@ -94,8 +85,8 @@ const addDoctor = async (req, res) => {
     res.json({ success: true, message: 'Doctor Added', data: doctorData });
   } catch (error) {
 
-    if(error.code === 11000){
-      res.json({ success: false, message:`${ error.keyValue.email} Is Alredy Exists` })
+    if (error.code === 11000) {
+      res.json({ success: false, message: `${error.keyValue.email} Is Alredy Exists` })
     }
     console.error('Error adding doctor:', error);
     res.json({ success: false, message: error.errmsg });
@@ -106,12 +97,12 @@ const addDoctor = async (req, res) => {
 
 const addHospital = async (req, res) => {
   try {
-    const { 
-      name, address, state, district, city, 
-      latitude, longitude, zipcode, 
-      constructed, about, bedNumber, contact 
+    const {
+      name, address, state, district, city,
+      latitude, longitude, zipcode,
+      constructed, about, bedNumber, contact
     } = req.body;
-    
+
     const imageFile = req.file;
 
     // Validate required fields
@@ -176,8 +167,8 @@ const loginAdmin = async (req, res) => {
     const { email, password } = req.body;
 
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign(email+password,process.env.JWT_SECRET); // Expires in 24 hours
-      res.json({ success: true, token,message:'Login Successful!' });
+      const token = jwt.sign(email + password, process.env.JWT_SECRET); // Expires in 24 hours
+      res.json({ success: true, token, message: 'Login Successful!' });
     } else {
       res.json({ success: false, message: 'Invalid credentials' });
     }
@@ -189,14 +180,14 @@ const loginAdmin = async (req, res) => {
 
 
 // API to get all data from  daoctor list
-const allDoctors= async (req,res)=>{
-  try{
-    const doctors=await doctorModel.find({}).select('-password')
-    res.json({success:true,doctors})
+const allDoctors = async (req, res) => {
+  try {
+    const doctors = await doctorModel.find({}).select('-password')
+    res.json({ success: true, doctors })
 
-  }catch(error){
+  } catch (error) {
     console.log(error)
-    res.json({success:false,message:error.message})
+    res.json({ success: false, message: error.message })
   }
 }
 
@@ -211,9 +202,9 @@ const getDoctorByHospital = async (req, res) => {
       return res.json({ success: false, message: "Hospital ID is required" });
     }
 
-    const doctors = await doctorModel.find({hospital: hospitalid }).select("-password"); // Filter doctors by hospitalId
+    const doctors = await doctorModel.find({ hospital: hospitalid }).select("-password"); // Filter doctors by hospitalId
 
-    
+
 
     res.json({ success: true, doctors });
 
@@ -229,77 +220,77 @@ const getDoctorByHospital = async (req, res) => {
 
 
 // API to get all data from  daoctor list
-const allHospitals= async (req,res)=>{
-  try{
-    const hospitals=await hospitalModel.find({}).select('-date')
-    res.json({success:true,hospitals})
+const allHospitals = async (req, res) => {
+  try {
+    const hospitals = await hospitalModel.find({}).select('-date')
+    res.json({ success: true, hospitals })
 
-  }catch(error){
+  } catch (error) {
     console.log(error)
-    res.json({success:false,message:error.message})
+    res.json({ success: false, message: error.message })
   }
 }
 
 
 //API to get all appointmentlist
-const appointmentAdmin = async (req,res)=>{
-  try{
+const appointmentAdmin = async (req, res) => {
+  try {
 
     const appointments = await appointmentModel.find({})
 
-    res.json({success:true , appointments})
+    res.json({ success: true, appointments })
 
-  }catch(error){
+  } catch (error) {
     console.log(error)
-    res.json({success:false,message:error.message})
+    res.json({ success: false, message: error.message })
 
   }
 }
 
 const cancelAppointmentAdmin = async (req, res) => {
   try {
-      const { appointmentId } = req.body
+    const { appointmentId } = req.body
 
-      const appointmentData = await appointmentModel.findById(appointmentId)
-
-     
-      await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+    const appointmentData = await appointmentModel.findById(appointmentId)
 
 
-      const { docId, slotDate, slotTime } = appointmentData
+    await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
-      const doctorData = await doctorModel.findById(docId)
 
-      let slot_booked = doctorData.slot_booked
+    const { docId, slotDate, slotTime } = appointmentData
 
-      slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+    const doctorData = await doctorModel.findById(docId)
 
-      await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+    let slot_booked = doctorData.slot_booked
 
-      // console.log(slots_booked)
+    slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
 
-      res.json({ success: true, message: "Appointment canceled." })
+    await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+
+    // console.log(slots_booked)
+
+    res.json({ success: true, message: "Appointment canceled." })
 
 
   } catch (error) {
-      console.error(error);
-      res.json({ message: "Internal server error" });
+    console.error(error);
+    res.json({ message: "Internal server error" });
 
   }
 
 }
 
 //API for getting dashboard Data
-const adminDashboard = async (req,res)=>{
-  try{
+const adminDashboard = async (req, res) => {
+  try {
 
     const doctors = await doctorModel.find({})
-    const users =  await  userModel.find({})
+    const users = await userModel.find({})
     const hospitals = await hospitalModel.find({})
-    const appointments =await appointmentModel.find({})
+    const appointments = await appointmentModel.find({})
 
     const today = new Date();
-    const todayFormatted = `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`;
+    const todayFormatted = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
     const todayAppointmentsCount = await appointmentModel.countDocuments({
       slotDate: todayFormatted,
@@ -319,7 +310,7 @@ const adminDashboard = async (req,res)=>{
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const revenueData = await appointmentModel.aggregate([
       {
         $match: {
@@ -371,16 +362,16 @@ const adminDashboard = async (req,res)=>{
       }
     ]);
 
-    
-    
 
-    const dashboardData={
-      doctors:doctors.length,
-      patients:users.length,
-      hospitals : hospitals.length,
-      appointments:appointments.length,
+
+
+    const dashboardData = {
+      doctors: doctors.length,
+      patients: users.length,
+      hospitals: hospitals.length,
+      appointments: appointments.length,
       todayAppointmentsCount,
-      latetestAppointments:appointments.reverse().slice(0,10),
+      latetestAppointments: appointments.reverse().slice(0, 10),
       specialtyDistribution: {
         labels: specialtyDistribution.map(s => s._id),
         data: specialtyDistribution.map(s => s.count)
@@ -400,20 +391,19 @@ const adminDashboard = async (req,res)=>{
         labels: revenueData.map(r => r._id),
         data: revenueData.map(r => r.dailyRevenue)
       }
-    
+
 
     }
 
 
     // console.log(dashboardData)
 
-    res.json({success:true,dashboardData})
+    res.json({ success: true, dashboardData })
 
-  }catch(error){
+  } catch (error) {
     console.error(error);
     res.json({ message: "Internal server error" });
   }
 }
 
-export { addDoctor, loginAdmin,allDoctors,addHospital,allHospitals ,getDoctorByHospital,appointmentAdmin,cancelAppointmentAdmin,adminDashboard};
-  
+export { addDoctor, loginAdmin, allDoctors, addHospital, allHospitals, getDoctorByHospital, appointmentAdmin, cancelAppointmentAdmin, adminDashboard };

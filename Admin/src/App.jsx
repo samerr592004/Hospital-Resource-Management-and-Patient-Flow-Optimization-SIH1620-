@@ -40,7 +40,7 @@ function App() {
         <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <Routes>
           {/* Admin Rout */}
-          <Route path="/" element={<></>} />
+          {aToken?<Route path="/" element={<Dashboard />} />:<Route path="/" element={<DoctorDashboard />} />}
           <Route path="/admin-dashboard" element={<Dashboard />} />
           <Route path="/all-appointment" element={<AllAppointment />} />
           <Route path="/add-doctor" element={<AddDoctor />} />

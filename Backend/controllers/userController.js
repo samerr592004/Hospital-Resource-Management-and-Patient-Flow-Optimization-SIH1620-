@@ -234,7 +234,7 @@ const listAppointment = async (req, res) => {
 
     try {
         const { userId } = req.body
-        const appointments = await appointmentModel.find({ userId ,isReviewed:false})
+        const appointments = await appointmentModel.find({ userId, isReviewed: false })
 
         res.json({ success: true, appointments })
 
@@ -395,13 +395,13 @@ const bookBed = async (req, res) => {
 //API for rateing]
 const giveRating = async (req, res) => {
     try {
-    const {skip} = req.body
+        const { skip } = req.body
 
         if (skip) {
             const { userId, docId, appointmentId, slotDate, slotTime } = req.body;
 
             if (!userId || !docId || !appointmentId || !slotDate || !slotTime) {
-                return json({success:false, message: "Missing required fields" });
+                return json({ success: false, message: "Missing required fields" });
             }
 
             const doctorData = await doctorModel.findById(docId)
@@ -410,16 +410,16 @@ const giveRating = async (req, res) => {
 
             if (slot_booked[slotDate] && Array.isArray(slot_booked[slotDate])) {
                 slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
-                
+
                 // Remove the date entry if no slots left
                 if (slot_booked[slotDate].length === 0) {
-                  delete slot_booked[slotDate];
+                    delete slot_booked[slotDate];
                 }
-              }
+            }
 
-          const t=  await doctorModel.findByIdAndUpdate(docId, { slot_booked })
+            const t = await doctorModel.findByIdAndUpdate(docId, { slot_booked })
 
-           const b= await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true, payment: true,isReviewed:true })
+            const b = await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true, payment: true, isReviewed: true })
 
 
 
@@ -429,19 +429,19 @@ const giveRating = async (req, res) => {
 
 
             if (!userId || !docId || !appointmentId || stars === undefined) {
-                return json({success:false, message: "Missing required fields" });
+                return json({ success: false, message: "Missing required fields" });
             }
 
             const appointment = await appointmentModel.findOne({ _id: appointmentId, userId });
 
             if (!appointment) {
-                return res.json({success:false, message: "Appointment not found or unauthorized" });
+                return res.json({ success: false, message: "Appointment not found or unauthorized" });
             }
 
             const doctor = await doctorModel.findById(docId);
 
             if (!doctor) {
-                return res.json({success:false, message: "Doctor not found" });
+                return res.json({ success: false, message: "Doctor not found" });
             }
 
             if (!doctor.rating) {
@@ -452,61 +452,63 @@ const giveRating = async (req, res) => {
 
             // Convert rating to float before storing
             const ratingFloat = parseFloat(stars).toFixed(1);
+            const today = new Date();
+            const todayFormatted = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`
 
             // Update user's rating
             await doctorModel.findByIdAndUpdate(
                 doctor._id,
-                { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name } },
+                { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name,date:todayFormatted } },
                 { new: true, upsert: true }
             );
 
-     
+
             const ratings = Object.values(doctor.reviews).map(entry => Number(entry.stars))
 
             const totalRating = ratings.reduce((sum, rating) => sum + rating, 0);
             const averageRating = totalRating / ratings.length;
-            
+
             // Update doctor's total rating
             await doctorModel.findByIdAndUpdate(
-              docId,
-              { total_rate: parseFloat(averageRating.toFixed(1)) }
-            );
-            
-            // Get current doctor data
-            const doctorData = await doctorModel.findById(docId);
-            
-            // Initialize slot_booked if it doesn't exist
-            let slot_booked = doctorData.slot_booked || {};
-            
-            // Ensure the date exists and has an array before filtering
-            if (slot_booked[slotDate] && Array.isArray(slot_booked[slotDate])) {
-              slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
-              
-              // Remove the date entry if no slots left
-              if (slot_booked[slotDate].length === 0) {
-                delete slot_booked[slotDate];
-              }
-            }
-            
-            // Update doctor's slot_booked
-            await doctorModel.findByIdAndUpdate(
-              docId,
-              { slot_booked },
-              { new: true }
-            );
-            
-            // Update appointment status
-            await appointmentModel.findByIdAndUpdate(
-              appointmentId,
-              { 
-                isCompleted: true,
-                payment: true,
-                isReviewed: true
-              },
-              { new: true }
+                docId,
+                { total_rate: parseFloat(averageRating.toFixed(1)) }
             );
 
-          await doctor.save();
+            // Get current doctor data
+            const doctorData = await doctorModel.findById(docId);
+
+            // Initialize slot_booked if it doesn't exist
+            let slot_booked = doctorData.slot_booked || {};
+
+            // Ensure the date exists and has an array before filtering
+            if (slot_booked[slotDate] && Array.isArray(slot_booked[slotDate])) {
+                slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
+
+                // Remove the date entry if no slots left
+                if (slot_booked[slotDate].length === 0) {
+                    delete slot_booked[slotDate];
+                }
+            }
+
+            // Update doctor's slot_booked
+            await doctorModel.findByIdAndUpdate(
+                docId,
+                { slot_booked },
+                { new: true }
+            );
+
+            // Update appointment status
+            await appointmentModel.findByIdAndUpdate(
+                appointmentId,
+                {
+                    isCompleted: true,
+                    payment: true,
+                    isReviewed: true
+                },
+                { new: true }
+            );
+
+            await doctor.save();
 
             res.json({ success: true, message: "Your rating and feedback have been submitted." });
         }
@@ -641,74 +643,69 @@ const cancelBeds = async (req, res) => {
 
 const timeOut = async (req, res) => {
     try {
-      const { appointmentId } = req.body;
-      
-  
-    //   1. Find and update the appointment
-      const appointment = await appointmentModel.findByIdAndUpdate(
-        appointmentId,
-        { isCompleted: true },
-        { new: true }
-      );
+        const { appointmentId } = req.body;
 
-      
-  
-      if (!appointment) {
-        return res.json({
-          success: false,
-          message: "Appointment not found"
+        // 1. Find and update the appointment
+        const appointment = await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            { isCompleted: true },
+            { new: true }
+        );
+
+        if (!appointment) {
+            return res.json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        // 2. Get the doctor and remove the time slot
+        const doctor = await doctorModel.findById(appointment.docId);
+        if (!doctor) {
+            return res.json({
+                success: false,
+                message: "Doctor not found"
+            });
+        }
+
+        // 3. Remove the time slot from slot_booked
+        const slotDate = appointment.slotDate;
+        const slotTime = appointment.slotTime;
+
+        if (doctor.slot_booked && doctor.slot_booked[slotDate]) {
+            // Create a new object to avoid modifying the original directly
+            const updatedSlotBooked = { ...doctor.slot_booked };
+
+            // Filter out the completed time slot
+            updatedSlotBooked[slotDate] = updatedSlotBooked[slotDate].filter(
+                time => time !== slotTime
+            );
+
+            // If no more slots for that date, remove the date entry
+            if (updatedSlotBooked[slotDate].length === 0) {
+                delete updatedSlotBooked[slotDate];
+            }
+
+            // Update the doctor's slot_booked
+            doctor.slot_booked = updatedSlotBooked;
+            await doctor.save();
+        }
+
+        res.json({
+            success: true,
+            message: "Appointment marked as completed and time slot freed",
+
         });
-      }
-  
-      // 2. Get the doctor and remove the time slot
-      const doctor = await doctorModel.findById(appointment.docId);
-      if (!doctor) {
-        return res.json({
-          success: false,
-          message: "Doctor not found"
-        });
-      }
 
-    //   console.log(doctor)
-  
-      // 3. Remove the time slot from slot_booked
-      const slotDate = appointment.slotDate;
-      const slotTime = appointment.slotTime;
-  
-      if (doctor.slot_booked && doctor.slot_booked[slotDate]) {
-        // Filter out the specific time slot
-        
-
-        let slot_booked = doctor.slot_booked
-
-        slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
-
-        await doctorModel.findByIdAndUpdate(appointment.docId, { slot_booked })
-  
-       
-      }
-       // If no more slots for that date, remove the date entry
-       if (doctor.slot_booked[slotDate].length === 0) {
-        delete doctor.slot_booked[slotDate];
-      }
-
-      await doctor.save();
-  
-      res.json({
-        success: true,
-        message: "Appointment marked as completed and time slot freed",
-        appointment,
-        doctor
-      });
-  
     } catch (error) {
-      console.error("Error in timeout appointment:", error);
-      res.json({
-        success: false,
-        message: error.message
-      });
+        console.error("Error in timeout appointment:", error);
+        res.json({
+            success: false,
+            message: "Internal server error",
+
+        });
     }
-  };
+};
 
 
 // const razorpayInstance = new razorpay({
@@ -722,4 +719,4 @@ const timeOut = async (req, res) => {
 
 // }
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds ,timeOut };
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds, timeOut };

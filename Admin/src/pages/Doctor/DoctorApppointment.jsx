@@ -88,7 +88,7 @@ const DoctorAppointment = () => {
                     <p>{indexOfFirstAppointment + index + 1}</p>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <FaUserInjured className="text-gray-600" />
+                        <img src={item.userData.image} className='rounded-full' alt="" />
                       </div>
                       <p className="truncate">{item.userData?.name || 'N/A'}</p>
                     </div>
@@ -101,12 +101,12 @@ const DoctorAppointment = () => {
                     <div className="flex items-center gap-2">
                       {item.payment ? (
                         <>
-                          <FaCheckCircle className="text-green-500 text-lg" title="Payment Completed" />
+                          <FaCheckCircle className="text-green-500 text-lg cursor-pointer" title="Payment Completed" />
                           <span className="text-green-500">Paid</span>
                         </>
                       ) : (
                         <>
-                          <FaTimesCircle className="text-red-500 text-lg" title="Payment Pending" />
+                          <FaTimesCircle className="text-red-500 text-lg cursor-pointer" title="Payment Pending" />
                           <span className="text-red-500">Pending</span>
                         </>
                       )}
