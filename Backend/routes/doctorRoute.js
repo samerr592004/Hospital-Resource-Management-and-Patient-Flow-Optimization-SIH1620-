@@ -1,5 +1,5 @@
 import express from 'express'
-import { doctorList,loginDoctor ,appoinmentDoctor,cancelAppointmentDoctor,getDoctorData,getDoctorDashboardData} from '../controllers/doctorController.js'
+import { doctorList,loginDoctor ,appoinmentDoctor,cancelAppointmentDoctor,getDoctorData,getDoctorDashboardData,completeAppointmentDoctor} from '../controllers/doctorController.js'
 import authDoctor from '../middlewares/authDoctor.js'
 
 
@@ -14,6 +14,7 @@ doctorRouter.get('/appointments',authDoctor,appoinmentDoctor)
 doctorRouter.get('/get-doctor-data',authDoctor,getDoctorData)
 doctorRouter.get('/get-dashboard-data',authDoctor,getDoctorDashboardData)
 doctorRouter.post('/cancel-appointment',authDoctor,cancelAppointmentDoctor)
+doctorRouter.post('/complete-appointment',authDoctor,completeAppointmentDoctor)
 
 
 

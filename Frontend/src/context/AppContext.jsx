@@ -90,7 +90,6 @@ const AppContextProvider=(props)=>{
 
             if(data.success){
                 setHospitals(data.hospital)
-                console.log(hospitals)
 
             }else{
                 toast.error(data.hospital)

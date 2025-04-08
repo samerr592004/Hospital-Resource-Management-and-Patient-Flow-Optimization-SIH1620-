@@ -44,11 +44,9 @@ const DoctorContextProvider = (props) => {
                 headers: { dtoken: dToken } // lowercase 'dtoken'
             })
 
-            console.log(data)
            
             if (data.success) { 
                setDashboardData(data.dashboardData)
-               console.log(data.dashboardData)
             } else {
                 console.log('error')
                 toast.error(data.message)
@@ -68,7 +66,6 @@ const DoctorContextProvider = (props) => {
                 headers: { dtoken: dToken } // lowercase 'dtoken'
             })
 
-            console.log(data)
             if (data.success) { // Correct spelling
                 setAppointments(data.appointments.reverse());
             } else {

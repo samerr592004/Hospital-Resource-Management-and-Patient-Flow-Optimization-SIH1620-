@@ -320,8 +320,8 @@ const bookBed = async (req, res) => {
             port: 465,
             secure: true,
             auth: {
-                user: "sameerkumar592004@gmail.com",
-                pass: 'evyb ylec phqb pikd'
+                user: process.env.GMAIL,
+                pass:process.env.PASSCODE
             }
         })
 
@@ -420,6 +420,8 @@ const giveRating = async (req, res) => {
             const t = await doctorModel.findByIdAndUpdate(docId, { slot_booked })
 
             const b = await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true, payment: true, isReviewed: true })
+
+            
 
 
 
@@ -698,7 +700,7 @@ const timeOut = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error in timeout appointment:", error);
+        toast.error("Error in timeout appointment:", error);
         res.json({
             success: false,
             message: "Internal server error",

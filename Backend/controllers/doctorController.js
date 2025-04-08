@@ -323,4 +323,80 @@ const getDoctorDashboardData = async (req, res) => {
     }
 }
 
-export { changeAvilability, doctorList, loginDoctor, appoinmentDoctor, cancelAppointmentDoctor, getDoctorData, getDoctorDashboardData }
+const completeAppointmentDoctor = async (req,res)=>{
+    try{
+        const {docId,appointmentId} = req.body
+
+           // 1. Find and update the appointment
+           const appointment = await appointmentModel.findByIdAndUpdate(
+            appointmentId,
+            { isCompleted: true ,},
+            { new: true }
+        );
+
+        if (!appointment) {
+            return res.json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
+        if (appointment.docId.toString() !== docId) {
+
+            return res.json({
+              success: false,
+              message: "Unauthorised access."
+            });
+          }
+          
+
+        // 2. Get the doctor and remove the time slot
+        const doctor = await doctorModel.findById(docId);
+        if (!doctor) {
+            return res.json({
+                success: false,
+                message: "Doctor not found"
+            });
+        }
+
+        const slotDate = appointment.slotDate;
+        const slotTime = appointment.slotTime;
+
+        if (doctor.slot_booked && doctor.slot_booked[slotDate]) {
+            // Create a new object to avoid modifying the original directly
+            const updatedSlotBooked = { ...doctor.slot_booked };
+
+            // Filter out the completed time slot
+            updatedSlotBooked[slotDate] = updatedSlotBooked[slotDate].filter(
+                time => time !== slotTime
+            );
+
+            // If no more slots for that date, remove the date entry
+            if (updatedSlotBooked[slotDate].length === 0) {
+                delete updatedSlotBooked[slotDate];
+            }
+
+            // Update the doctor's slot_booked
+            doctor.slot_booked = updatedSlotBooked;
+            await doctor.save();
+        }
+
+        res.json({
+            success: true,
+            message: "Consultation completed successfully.",
+
+        });
+
+        
+
+    }catch(error){
+        console.error('Error in getDoctorDashboardData:', error);
+        res.json({
+            success: false,
+            message: "Internal server error"
+        });
+
+    }
+}
+
+export { changeAvilability, doctorList, loginDoctor, appoinmentDoctor, cancelAppointmentDoctor, getDoctorData, getDoctorDashboardData ,completeAppointmentDoctor}

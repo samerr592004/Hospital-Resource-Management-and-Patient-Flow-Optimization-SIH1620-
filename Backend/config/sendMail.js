@@ -9,8 +9,8 @@
             port: 465,
             secure:true,
             auth: {
-                user:"sameerkumar592004@gmail.com",
-                pass: 'evyb ylec phqb pikd'
+                user: process.env.GMAIL,
+                pass:process.env.PASSCODE
             }
         })
 
@@ -77,7 +77,6 @@
                 console.log(error)
                 return false
             }
-            // console.log("success")
             res.end()
         });
         // console.log("Email sent successfully to:", user.email)
