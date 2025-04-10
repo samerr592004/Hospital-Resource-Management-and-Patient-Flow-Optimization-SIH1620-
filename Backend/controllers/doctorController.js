@@ -174,7 +174,7 @@ const getDoctorData = async (req, res) => {
     try {
         const { docId } = req.body
 
-        const doctorData = await doctorModel.findById(docId)
+        const doctorData = await doctorModel.findById(docId).select("-password")
 
         if (!doctorData) {
             return res.json({ success: false, message: "Unauthorised access." })
@@ -399,4 +399,24 @@ const completeAppointmentDoctor = async (req,res)=>{
     }
 }
 
-export { changeAvilability, doctorList, loginDoctor, appoinmentDoctor, cancelAppointmentDoctor, getDoctorData, getDoctorDashboardData ,completeAppointmentDoctor}
+//API for update doctor profile 
+const updateDoctorProfile = async (req,res)=>{ 
+    try{
+        const {docId,fees,address,avilable} = req.body
+
+        await doctorModel.findByIdAndUpdate(docId,{fees,address,avilable})
+        res.json({success:true,message:"Profile Updated."})
+    }catch(error){
+        
+        res.json({
+            success: false,
+            message: "Internal server error"
+        });
+
+    }
+
+}
+
+export { changeAvilability, doctorList, loginDoctor,
+     appoinmentDoctor, cancelAppointmentDoctor, getDoctorData, 
+     getDoctorDashboardData ,completeAppointmentDoctor,updateDoctorProfile}

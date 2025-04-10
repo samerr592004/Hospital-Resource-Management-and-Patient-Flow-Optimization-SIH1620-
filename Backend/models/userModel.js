@@ -39,6 +39,18 @@ const userSchema = new mongoose.Schema({
         type: Object,
         default: {},
 
+    },
+    otpExpiry :{
+    
+        type: String,
+        default:'',
+
+    },
+    resetOtp :{
+    
+        type: String,
+        default:'',
+
     }
 })
 

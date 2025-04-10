@@ -22,9 +22,11 @@ import DoctorTestimonials from "./pages/Doctor/DoctorTestimonials";
 
 
 function App() {
-  const { aToken } = useContext(AdminContext);
-  const { dToken } = useContext(DoctorContext);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to control Sidebar visibility
+  const { aToken,setAToken } = useContext(AdminContext);
+  const { dToken ,setDToken} = useContext(DoctorContext);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen); // Toggle Sidebar visibility

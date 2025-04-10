@@ -22,7 +22,7 @@ function Navbar() {
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-black m-3">
       
-      <img onClick={()=>navigate('/')} className="w-44 cursor-pointer" src={assets.logo} alt="Logo" />
+      <img onClick={()=>navigate('/')} className="w-44 cursor-pointer " src={assets.logo} alt="Logo" />
       <ul className="hidden md:flex items-start gap-5 font-semibold text-base">
         <NavLink
           to="/"
@@ -62,6 +62,7 @@ function Navbar() {
           <li className="py-1">Contact</li>
           <hr className="transition-all duration-300 ease-in-out border-none outline-none h-0.5 bg-primary w-0 m-auto group-hover:w-3/5" />
         </NavLink>
+        <a target="_blank" href='  http://localhost:5176/' class="border px-5 text-xs py-1.5 rounded-full">Admin Panel</a>
       </ul>
       <div className="flex items-center gap-4 ">
         {
@@ -126,6 +127,27 @@ function Navbar() {
             <p className='px-4 py-2 rounedd inline-block'>Contact</p>
             <hr className="transition-all duration-300 ease-in-out border-none outline-none h-0.5 bg-primary w-0 m-auto group-hover:w-3/5" />
             </NavLink>
+           
+            {
+            token && userData
+            ?
+            <NavLink
+            onClick={()=>{setShowMenu(false)
+              logout()
+            }} 
+            className="bg-primary text-white px-8 py-3 rounded-full font-light  md:block"
+          >
+            Logout
+          </NavLink>
+            :<NavLink
+            onClick={()=>setShowMenu(false)} to='/login'
+            className="bg-primary text-white px-8 py-3 rounded-full font-light  md:block"
+          >
+            Sign Up/Sign In
+          </NavLink>
+        }
+        
+
           </ul>
         </div>
       </div>

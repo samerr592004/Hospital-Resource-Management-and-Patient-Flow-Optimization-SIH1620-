@@ -15,11 +15,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import HospitalDetails from './pages/HospitalDetails';
 import BedStatus from './pages/BedStatus';
 import MyBeds from './pages/MyBeds';
+import NotFoundPage from './pages/NotFoundPage';
 
 
 const App = () => {
   return (
-    <div className='mx-4'>
+    <div className=''>
      <ToastContainer/>
       <Navbar />
       <Routes>
@@ -39,6 +40,7 @@ const App = () => {
         <Route path="/my-beds" element={<MyBeds />} />
         <Route path="/appointment/:docId" element={<Appointment />} />
         <Route path="hospital/:hospitalId/doctors/appointment/:docId" element={<Appointment />} />
+        <Route path="*" element={<NotFoundPage />} />
         
 
       </Routes>

@@ -7,92 +7,69 @@ import jwt from 'jsonwebtoken';
 import sharp from 'sharp';
 import appointmentModel from '../models/appointmentModel.js';
 import userModel from '../models/userModel.js';
+
+
 // Add Doctor
 const addDoctor = async (req, res) => {
-
   try {
-
-
     const { name, email, password, speciality, degree, experience, about, fees, address, hospital } = req.body;
     const imageFile = req.file;
-
-
 
     // Validate required fields
     if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address || !hospital) {
       return res.json({ success: false, message: 'Missing Details' });
     }
 
-
-
     // Validate email format
     if (!validator.isEmail(email)) {
-
       return res.json({ success: false, message: 'Please enter a valid email' });
     }
-
 
     // Validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-
       return res.json({
         success: false,
         message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
       });
     }
 
-
     // Hash password
     const salt = await bcryptjs.genSalt(10);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
-
-    let imageUrl = null;
-    if (imageFile) {
-      try {
-        // Directly upload the original image to Cloudinary
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-          resource_type: 'image'
-        });
-        const imageUrl = imageUpload.secure_url;
-      } catch (error) {
-        return res.json({ success: false, message: 'Image upload failed', error: error.message });
-      }
-    }
-
+   const imageUpload = await cloudinary.uploader.upload(imageFile.path, {resource_type: 'image'})
+   const imageUrl = imageUpload.secure_url
     // Create doctor data
     const doctorData = {
       name,
       email,
-      image: imageUrl || '', // Set default empty string if no image is uploaded
+      image: imageUrl, // This will be either the URL or empty string
       password: hashedPassword,
       speciality,
       degree,
       experience,
       about,
       fees,
-      address: typeof address === 'string' ? JSON.parse(address) : address, // Ensure correct format
+      address: typeof address === 'string' ? JSON.parse(address) : address,
       hospital,
       date: Date.now(),
     };
 
     // Save doctor to database
     const newDoctor = new doctorModel(doctorData);
-
     await newDoctor.save();
 
     res.json({ success: true, message: 'Doctor Added', data: doctorData });
   } catch (error) {
-
     if (error.code === 11000) {
-      res.json({ success: false, message: `${error.keyValue.email} Is Alredy Exists` })
+      res.json({ success: false, message: `${error.keyValue.email} Is Already Exists` });
+    } else {
+      console.error('Error adding doctor:', error);
+      res.json({ success: false, message: error.message || 'Failed to add doctor' });
     }
-    console.error('Error adding doctor:', error);
-    res.json({ success: false, message: error.errmsg });
   }
 };
-
 //Add Hospital
 
 const addHospital = async (req, res) => {
@@ -236,7 +213,7 @@ const allHospitals = async (req, res) => {
 const appointmentAdmin = async (req, res) => {
   try {
 
-    const appointments = await appointmentModel.find({})
+    const appointments = await appointmentModel.find({isComplete:false})
 
     res.json({ success: true, appointments })
 
@@ -247,38 +224,44 @@ const appointmentAdmin = async (req, res) => {
   }
 }
 
+
 const cancelAppointmentAdmin = async (req, res) => {
   try {
-    const { appointmentId } = req.body
+    const { appointmentId } = req.body;
 
-    const appointmentData = await appointmentModel.findById(appointmentId)
-
+    const appointmentData = await appointmentModel.findById(appointmentId);
+    if (!appointmentData) {
+      return res.status(404).json({ success: false, message: "Appointment not found" });
+    }
 
     await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
+    const { docId, slotDate, slotTime } = appointmentData;
 
-    const { docId, slotDate, slotTime } = appointmentData
+    const doctorData = await doctorModel.findById(docId);
+    if (!doctorData) {
+      return res.status(404).json({ success: false, message: "Doctor not found" });
+    }
 
-    const doctorData = await doctorModel.findById(docId)
+    let slot_booked = doctorData.slot_booked || {};
+    
+    // Initialize the array for the date if it doesn't exist
+    if (!slot_booked[slotDate]) {
+      slot_booked[slotDate] = [];
+    }
 
-    let slot_booked = doctorData.slot_booked
+    // Filter out the time slot
+    slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime);
 
-    slot_booked[slotDate] = slot_booked[slotDate].filter(e => e !== slotTime)
+    await doctorModel.findByIdAndUpdate(docId, { slot_booked });
 
-    await doctorModel.findByIdAndUpdate(docId, { slot_booked })
-
-    // console.log(slots_booked)
-
-    res.json({ success: true, message: "Appointment canceled." })
-
+    res.json({ success: true, message: "Appointment canceled." });
 
   } catch (error) {
     console.error(error);
-    res.json({ message: "Internal server error" });
-
+    res.json({ success: false, message: "Internal server error" });
   }
-
-}
+};
 
 //API for getting dashboard Data
 const adminDashboard = async (req, res) => {

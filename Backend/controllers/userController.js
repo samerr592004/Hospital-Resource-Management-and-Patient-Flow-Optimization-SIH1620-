@@ -9,6 +9,7 @@ import hospitalModel from '../models/hospitalModel.js';
 import nodemailer from 'nodemailer'
 import sendMail from '../config/sendMail.js';
 import razorpay from 'razorpay'
+import sendOtpMail from '../config/sendOtpMail.js';
 // Register User API
 const registerUser = async (req, res) => {
     try {
@@ -321,7 +322,7 @@ const bookBed = async (req, res) => {
             secure: true,
             auth: {
                 user: process.env.GMAIL,
-                pass:process.env.PASSCODE
+                pass: process.env.PASSCODE
             }
         })
 
@@ -421,7 +422,7 @@ const giveRating = async (req, res) => {
 
             const b = await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true, payment: true, isReviewed: true })
 
-            
+
 
 
 
@@ -460,7 +461,7 @@ const giveRating = async (req, res) => {
             // Update user's rating
             await doctorModel.findByIdAndUpdate(
                 doctor._id,
-                { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name,date:todayFormatted } },
+                { [`reviews.${userId}`]: { stars: ratingFloat, feedback, image, name: user.name, date: todayFormatted } },
                 { new: true, upsert: true }
             );
 
@@ -721,4 +722,97 @@ const timeOut = async (req, res) => {
 
 // }
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds, timeOut };
+
+const forgetpasswordUser = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User with this email does not exist.",
+            });
+        }
+
+        // ✅ Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+       
+        // ✅ Send OTP via email
+        await sendOtpMail(email, otp,user.name);
+
+        return res.json({
+            success: true,
+            message: "OTP sent to your email.",
+            otp
+        });
+    } catch (error) {
+        console.error("Forget Password Error:", error);
+        return res.json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+
+
+const resetPassword = async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+
+      
+  
+      const user = await userModel.findOne({ email });
+      if (!user) {
+       
+        return res.json({ success: false, message: "User not found." });
+      }
+  
+      if (newPassword.length < 8) {
+        return res.json({
+          success: false,
+          message: "Password must be at least 8 characters long.",
+        });
+      }
+  
+      // ✅ Strong Password Validation
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  
+      if (!passwordRegex.test(newPassword)) {
+        return res.json({
+          success: false,
+          message:
+            "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        });
+      }
+  
+      // ✅ Hash new password
+      const salt = await bcryptjs.genSalt(10);
+      const hashedPassword = await bcryptjs.hash(newPassword, salt);
+  
+      // ✅ Update and save
+      user.password = hashedPassword;
+
+
+      await user.save();
+
+    //   console.log(newPassword)
+  
+      return res.json({
+        success: true,
+        message: "Password reset successfully.",
+      });
+    } catch (error) {
+      console.error("Reset Password Error:", error);
+      return res.json({
+        success: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  };
+
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, bookBed, giveRating, cancelAppointment, cancelBeds, timeOut, forgetpasswordUser ,resetPassword};

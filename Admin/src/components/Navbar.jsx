@@ -16,10 +16,10 @@ function Navbar({ toggleSidebar }) {
     if(aToken){
     aToken && setAToken('');
     aToken && localStorage.removeItem('aToken');
-    }else{
-      dToken && setDToken('');
-      dToken && localStorage.removeItem('aToken');
     }
+      dToken && setDToken('');
+      dToken && localStorage.removeItem('dToken');
+    
   };
 
   return (
