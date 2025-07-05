@@ -22,6 +22,7 @@ const Login = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(false);
+  const [isOtp, setIsOtp] = useState();
 
   // Clean up timer on unmount
   useEffect(() => {
@@ -50,7 +51,14 @@ const Login = () => {
     try {
       if (state === 'Sign Up') {
         const { data } = await axios.post(`${backendUrl}/api/user/register`, { name, password, email });
+        if(data.success){
         handleAuthSuccess(data);
+
+        }else{
+          toast.warn(data.message)
+          if (data.message.includes('User already exist')) {
+            setState('Login');
+          }}
       } else {
         const { data } = await axios.post(`${backendUrl}/api/user/login`, { password, email });
         handleAuthSuccess(data);

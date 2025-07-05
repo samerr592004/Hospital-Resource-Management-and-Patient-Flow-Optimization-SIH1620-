@@ -62,7 +62,7 @@ function Navbar() {
           <li className="py-1">Contact</li>
           <hr className="transition-all duration-300 ease-in-out border-none outline-none h-0.5 bg-primary w-0 m-auto group-hover:w-3/5" />
         </NavLink>
-        <a target="_blank" href='  http://localhost:5176/' class="border px-5 text-xs py-1.5 rounded-full">Admin Panel</a>
+        <a target="_blank" href='  http://localhost:5174/' class="border px-5 text-xs py-1.5 rounded-full">Admin Panel</a>
       </ul>
       <div className="flex items-center gap-4 ">
         {

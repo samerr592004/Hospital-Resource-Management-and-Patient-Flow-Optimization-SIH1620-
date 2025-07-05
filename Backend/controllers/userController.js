@@ -15,17 +15,33 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
+
+
+        const userFound = await userModel.find({email}).select('-password')
+
+        if(userFound){
+            return res.json({ success: false, message: "User already existed." });
+        }
+
+
+        
+
+
         if (!name || !email || !password) {
             return res.json({ success: false, message: "Missing details." });
         }
+
+
 
         if (!validator.isEmail(email)) {
             return res.json({ success: false, message: "Enter a valid email." });
         }
 
+
         if (password.length < 8) {
             return res.json({ success: false, message: "Password must be at least 8 characters long." });
         }
+
 
         // Strong Password Validation
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
