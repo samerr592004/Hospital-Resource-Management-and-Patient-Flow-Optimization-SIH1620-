@@ -19,6 +19,11 @@ const registerUser = async (req, res) => {
         if (existingUser) {
             return res.json({ success: false, message: "User already exists." });
         }
+
+
+
+
+        
         if (!name || !email || !password) {
             return res.json({ success: false, message: "Missing details." });
         }
