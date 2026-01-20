@@ -14,25 +14,14 @@ import sendOtpMail from '../config/sendOtpMail.js';
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-
-
-
-        const userFound = await userModel.find({email}).select('-password')
-
-        if(userFound){
-            return res.json({ success: false, message: "User already existed." });
-        }
-
-
         
-
-
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.json({ success: false, message: "User already exists." });
+        }
         if (!name || !email || !password) {
             return res.json({ success: false, message: "Missing details." });
         }
-
-
-
         if (!validator.isEmail(email)) {
             return res.json({ success: false, message: "Enter a valid email." });
         }
@@ -53,10 +42,7 @@ const registerUser = async (req, res) => {
         }
 
         // Check if user already exists
-        const existingUser = await userModel.findOne({ email });
-        if (existingUser) {
-            return res.json({ success: false, message: "User already exists." });
-        }
+       
 
         // Hash Password
         const salt = await bcryptjs.genSalt(10);
